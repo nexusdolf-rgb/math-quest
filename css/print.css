@@ -1,0 +1,8 @@
+/* Impression : n'afficher que le diplôme */
+.bg-deco, .nav-bas, .bubble, #confetti, #toast, #superposition, #splash { display: none !important; }
+body { background: #fff !important; }
+#root > * { display: none !important; animation: none !important; }
+#root .zone-impression, #root .zone-impression * { display: revert !important; visibility: visible; }
+.zone-impression { display: block !important; }
+.boutons-impression { display: none !important; }
+@page { margin: 1.5cm; }

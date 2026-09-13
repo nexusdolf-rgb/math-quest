@@ -7,9 +7,6 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# Page d'accueil par défaut
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
+# Les dossiers css/ js/ icons/ sont de vrais fichiers : on ne met PAS
+# de redirection globale vers index.html (pour avoir de vrais 404 si
+# un fichier manque, au lieu de renvoyer silencieusement la page).
