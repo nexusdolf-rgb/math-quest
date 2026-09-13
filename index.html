@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Math Quest — Le jeu de maths pour les enfants</title>
+  <meta name="description" content="Math Quest : jeu éducatif de mathématiques pour les 5-12 ans. 21 jeux : calcul mental, tables, divisions, heure, monnaie, formes, défis entre amis… 100% gratuit et hors-ligne !" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Math Quest" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/print.css" media="print" />
+</head>
+<body>
+  <!-- Écran de démarrage -->
+  <div id="splash" aria-hidden="true">
+    <div class="splash-logo">🧮</div>
+    <div class="splash-titre">Math Quest</div>
+    <div class="splash-chargement"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- Bulles décoratives -->
+  <div class="bg-deco" aria-hidden="true">
+    <span class="bubble b1">➕</span><span class="bubble b2">✖️</span><span class="bubble b3">➖</span>
+    <span class="bubble b4">🔢</span><span class="bubble b5">➗</span><span class="bubble b6">⭐</span>
+    <span class="bubble b7">🎯</span><span class="bubble b8">🚀</span>
+  </div>
+
+  <main id="root" class="app"></main>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div id="toast" class="toast" role="status"></div>
+  <div id="superposition" class="superposition" hidden></div>
+
+  <!-- Scripts de l'application (chargés dans l'ordre, sans serveur requis) -->
+  <script src="js/util.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/questions.js"></script>
+  <script src="js/engine-quiz.js"></script>
+  <script src="js/games.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

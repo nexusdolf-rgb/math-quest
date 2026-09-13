@@ -1,0 +1,15 @@
+# Configuration Netlify pour Math Quest (site 100% statique)
+
+# Le service worker doit toujours être récupéré à jour pour propager
+# les nouvelles versions du jeu aux joueurs.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Page d'accueil par défaut
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
