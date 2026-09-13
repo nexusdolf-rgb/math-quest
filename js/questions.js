@@ -22,9 +22,21 @@ function pack(bonne, optionsValeurs, visuel, consigne, op) {
   return { consigne, visuel, options, answer: options.indexOf(String(bonne)), op };
 }
 
+/* Niveau de difficulté selon l'âge (jusqu'aux adultes) */
+function profilAge() {
+  const a = joueur ? joueur.age : 7;
+  if (a <= 6)  return { max: 10,  mix: 10,  mul1: 2, mul2: 5,  div: false, pasMax: 4,  dev: 50,   hor: [0, 30],            money: false, mem: 'add', taupe: 10, taupeMs: 1500, diz: 6 };
+  if (a <= 8)  return { max: 20,  mix: 20,  mul1: 2, mul2: 8,  div: false, pasMax: 6,  dev: 100,  hor: [0, 15, 30, 45],    money: true,  mem: 'add', taupe: 20, taupeMs: 1500, diz: 7 };
+  if (a <= 10) return { max: 40,  mix: 30,  mul1: 3, mul2: 10, div: true,  pasMax: 9,  dev: 200,  hor: 'cinq',            money: true,  mem: 'mul', taupe: 30, taupeMs: 1400, diz: 8 };
+  if (a <= 12) return { max: 60,  mix: 40,  mul1: 4, mul2: 10, div: true,  pasMax: 11, dev: 300,  hor: 'cinq',            money: true,  mem: 'mul', taupe: 40, taupeMs: 1300, diz: 9 };
+  if (a <= 15) return { max: 120, mix: 80,  mul1: 6, mul2: 12, div: true,  pasMax: 13, dev: 500,  hor: 'cinq',            money: 20,   mem: 'div', taupe: 60, taupeMs: 1200, diz: 9, divB: 11, divQ: 12 };
+  return              { max: 250, mix: 150, mul1: 7, mul2: 12, div: true,  pasMax: 16, dev: 1000, hor: 'cinq',            money: 20,   mem: 'div', taupe: 90, taupeMs: 1100, diz: 9, divB: 12, divQ: 12 };
+}
+
 /* ---------- Calculs (add / sub / mul / mixed / tranches) ---------- */
 function genereCalcul(operation, min = 1, max = 20, facteur = null, tranche = null) {
   let a, b, bonne, symbole, op = 'autre';
+  const p = profilAge();
   if (operation === 'mul') {
     a = facteur; b = alea(1, 10); bonne = a * b; symbole = '×'; op = 'mul';
   } else if (operation === 'multranche') {
@@ -32,85 +44,102 @@ function genereCalcul(operation, min = 1, max = 20, facteur = null, tranche = nu
   } else if (operation === 'divtranche') {
     b = alea(tranche[0], tranche[1]); bonne = alea(2, 10); a = b * bonne; symbole = '÷'; op = 'div';
   } else if (operation === 'div') {
-    b = facteur || alea(2, 9); bonne = alea(2, 10); a = b * bonne; symbole = '÷'; op = 'div';
+    b = alea(2, p.div ? (p.divB || 9) : 5); bonne = alea(2, p.divQ || p.mul2 || 10); a = b * bonne; symbole = '÷'; op = 'div';
   } else if (operation === 'sub') {
     a = alea(Math.max(2, min), max); b = alea(min, Math.max(min, a)); bonne = a - b; symbole = '−'; op = 'sub';
-  } else if (operation === 'mixed') {
-    const type = choix(['add', 'sub', 'mul']);
-    if (type === 'mul') { a = alea(2, Math.min(10, max)); b = alea(2, 10); bonne = a * b; symbole = '×'; op = 'mul'; }
-    else if (type === 'sub') {
-      a = alea(min + 1, max); b = alea(min, Math.max(min, a)); bonne = a - b; symbole = '−'; op = 'sub';
-    } else { a = alea(min, max); b = alea(min, max); bonne = a + b; symbole = '+'; op = 'add'; }
-  } else if (operation === 'mixeddur') {
-    const type = choix(['add', 'sub', 'mul', 'mul']);
-    if (type === 'mul') { a = alea(3, 10); b = alea(3, 10); bonne = a * b; symbole = '×'; op = 'mul'; }
-    else if (type === 'sub') {
-      a = alea(20, max); b = alea(min, Math.max(min, a - 1)); bonne = a - b; symbole = '−'; op = 'sub';
-    } else { a = alea(min, max); b = alea(min, max); bonne = a + b; symbole = '+'; op = 'add'; }
+  } else if (operation === 'mixed' || operation === 'mixeddur') {
+    const dur = operation === 'mixeddur';
+    const ops = dur ? ['add', 'sub', 'mul', 'mul', ...(p.div ? ['div'] : [])]
+                   : ['add', 'sub', ...(joueur && joueur.age >= 7 ? ['mul'] : []), ...(p.div ? ['div'] : [])];
+    const type = choix(ops);
+    const M = dur ? Math.round(p.mix * 1.4) : p.mix;
+    if (type === 'mul') { a = alea(2, p.mul2); b = alea(p.mul1, Math.max(p.mul1, p.mul2)); bonne = a * b; symbole = '×'; op = 'mul'; }
+    else if (type === 'div') { b = alea(2, p.divB || 9); bonne = alea(2, p.divQ || 10); a = b * bonne; symbole = '÷'; op = 'div'; }
+    else if (type === 'sub') { a = alea(Math.round(M / 2) + 1, M); b = alea(1, a); bonne = a - b; symbole = '−'; op = 'sub'; }
+    else { a = alea(1, M); b = alea(1, M); bonne = a + b; symbole = '+'; op = 'add'; }
   } else {
     a = alea(min, max); b = alea(min, max); bonne = a + b; symbole = '+'; op = 'add';
   }
-  const distracteurs = [1, -1, 2, -2, 10, -10, symbole === '×' ? b : 0, symbole === '×' ? -b : b];
+  const distracteurs = [1, -1, 2, -2, 10, -10, symbole === '×' || symbole === '÷' ? b : 0,
+                        symbole === '×' ? -b : b, symbole === '÷' ? b : -bonne];
   const options = optionsNombre(bonne, distracteurs);
   return pack(bonne, options, `<div class="q-calcul">${a} ${symbole} ${b} = ?</div>`, 'Combien ça fait ?', op);
 }
 
-/* Petite expression pour le Tape-Taupe : renvoie { texte, valeur, op } */
+/* Petite expression pour les jeux d'arcade / comparaisons : { texte, valeur, op } */
 function construireExpression(niveauMax) {
   const age = joueur ? joueur.age : 7;
-  const type = choix(age <= 6 ? ['add', 'sub'] : ['add', 'sub', 'mul']);
+  const types = age <= 6 ? ['add', 'sub']
+              : age <= 9 ? ['add', 'sub', 'mul']
+              : ['add', 'sub', 'mul', 'div'];
+  const type = choix(types);
   let a, b, val, sym, op;
-  if (type === 'mul') { a = alea(2, Math.min(9, niveauMax)); b = alea(2, 5); val = a * b; sym = '×'; op = 'mul'; }
+  if (type === 'mul') { a = alea(2, Math.min(9, Math.round(niveauMax / 3))); b = alea(2, Math.min(9, Math.round(niveauMax / 2))); val = a * b; sym = '×'; op = 'mul'; }
+  else if (type === 'div') { b = alea(2, 9); val = alea(2, 10); a = b * val; sym = '÷'; op = 'div'; }
   else if (type === 'sub') { a = alea(4, niveauMax); b = alea(1, a - 1); val = a - b; sym = '−'; op = 'sub'; }
   else { a = alea(1, niveauMax); b = alea(1, niveauMax); val = a + b; sym = '+'; op = 'add'; }
   return { texte: `${a} ${sym} ${b}`, valeur: val, op };
 }
 
 /* ---------- Vrai / Faux ---------- */
-function genereVraiFaux(min = 1, max = 20) {
-  const a = alea(min, max), b = alea(min, max);
-  const symbole = choix(['+', '−']);
-  const grand = Math.max(a, b), petit = Math.min(a, b);
-  const vraiResultat = symbole === '+' ? a + b : grand - petit;
+function genereVraiFaux(min, max) {
+  const p = profilAge();
+  const cap = max || p.mix;
+  const e = construireExpression(cap);
   const juste = Math.random() < .5;
-  const affiche = juste ? vraiResultat : vraiResultat + choix([1, -1, 2, -2, 3]);
+  const affiche = juste ? e.valeur : e.valeur + choix([1, -1, 2, -2, 3, 10, -10]);
   return {
     consigne: "L'opération est-elle correcte ?",
-    visuel: `<div class="q-calcul">${symbole === '+' ? `${a} + ${b}` : `${grand} − ${petit}`} = ${affiche}</div>`,
+    visuel: `<div class="q-calcul">${e.texte} = ${affiche}</div>`,
     options: ['✅ Vrai', '❌ Faux'],
     answer: juste ? 0 : 1,
-    op: 'autre'
+    op: e.op
   };
 }
 
 /* ---------- Nombre manquant ---------- */
 function genereManquant() {
-  const a = alea(2, 15), b = alea(2, 15);
-  const plus = Math.random() < .5;
-  let reponse, texte;
-  if (plus) {
-    if (Math.random() < .5) { reponse = a; texte = `⬜ + ${b} = ${a + b}`; }
-    else { reponse = b; texte = `${a} + ⬜ = ${a + b}`; }
+  const p = profilAge();
+  let reponse, texte, op = 'autre';
+  if (p.div && Math.random() < .35) {
+    // multiplication à trou (et parfois division)
+    if (Math.random() < .5) {
+      const a = alea(2, p.mul2), b = alea(2, p.mul2);
+      reponse = Math.random() < .5 ? a : b;
+      texte = reponse === a ? `⬜ × ${b} = ${a * b}` : `${a} × ⬜ = ${a * b}`;
+    } else {
+      const div = alea(2, 9), q = alea(2, 10), total = div * q;
+      if (Math.random() < .5) { reponse = div; texte = `${total} ÷ ⬜ = ${q}`; }
+      else { reponse = total; texte = `⬜ ÷ ${div} = ${q}`; }
+    }
+    op = 'mul';
   } else {
-    const grande = Math.max(a, b), petite = Math.min(a, b), resultat = grande - petite;
-    if (Math.random() < .5) { reponse = grande; texte = `⬜ − ${petite} = ${resultat}`; }
-    else { reponse = petite; texte = `${grande} − ⬜ = ${resultat}`; }
+    const a = alea(2, Math.max(15, p.mix)), b = alea(2, Math.max(15, p.mix));
+    const plus = Math.random() < .5;
+    if (plus) {
+      if (Math.random() < .5) { reponse = a; texte = `⬜ + ${b} = ${a + b}`; }
+      else { reponse = b; texte = `${a} + ⬜ = ${a + b}`; }
+      op = 'add';
+    } else {
+      const grande = Math.max(a, b), petite = Math.min(a, b), resultat = grande - petite;
+      if (Math.random() < .5) { reponse = grande; texte = `⬜ − ${petite} = ${resultat}`; }
+      else { reponse = petite; texte = `${grande} − ⬜ = ${resultat}`; }
+      op = 'sub';
+    }
   }
-  const options = optionsNombre(reponse, [1, -1, 2, -2]);
-  return pack(reponse, options, `<div class="q-calcul">${texte}</div>`, 'Quel nombre se cache ?', 'autre');
+  const options = optionsNombre(reponse, [1, -1, 2, -2, 10, -10]);
+  return pack(reponse, options, `<div class="q-calcul">${texte}</div>`, 'Quel nombre se cache ?', op);
 }
 
 /* ---------- Comparaison ---------- */
 function genereComparaison() {
-  const age = joueur ? joueur.age : 7;
-  const max = age <= 6 ? 20 : 100;
-  // moitié expressions, moitié nombres simples
+  const p = profilAge();
   let g, d, reponse;
   if (Math.random() < .55) {
-    const e1 = construireExpression(Math.min(max, 30));
-    let e2 = construireExpression(Math.min(max, 30));
+    const e1 = construireExpression(p.mix);
+    let e2 = construireExpression(p.mix);
     let garde = 0;
-    while (e2.valeur === e1.valeur && garde++ < 10) e2 = construireExpression(Math.min(max, 30));
+    while (e2.valeur === e1.valeur && garde++ < 10) e2 = construireExpression(p.mix);
     g = e1; d = e2;
     reponse = e1.valeur === e2.valeur ? 2 : e1.valeur > e2.valeur ? 0 : 1;
     return {
@@ -123,7 +152,7 @@ function genereComparaison() {
       answer: reponse, op: g.op
     };
   }
-  g = alea(1, max); d = alea(1, max);
+  g = alea(1, p.max); d = alea(1, p.max);
   reponse = g === d ? 2 : g > d ? 0 : 1;
   return {
     consigne: 'Quel signe va au milieu ?',
@@ -160,7 +189,8 @@ function genereFraction() {
 
 /* ---------- Suites logiques ---------- */
 function genereSuite() {
-  const debut = alea(1, 9), pas = alea(2, 6);
+  const p = profilAge();
+  const debut = alea(1, 9), pas = alea(2, p.pasMax);
   const termes = [0, 1, 2, 3].map(i => debut + i * pas);
   const reponse = debut + 4 * pas;
   const options = optionsNombre(reponse, [pas, -pas, 1, -1, 2]);
@@ -181,7 +211,8 @@ function genereCompte() {
 
 /* ---------- Dizaines et unités (barres Montessori) ---------- */
 function genereDizaines() {
-  const diz = alea(1, 6), uni = alea(0, 9);
+  const p = profilAge();
+  const diz = alea(1, p.diz), uni = alea(0, 9);
   const reponse = diz * 10 + uni;
   const options = optionsNombre(reponse, [1, -1, 10, -10, 2]);
   const barres = Array.from({ length: diz }, () => '<div class="diz-barre">10</div>').join('');
@@ -217,9 +248,10 @@ function horlogeSVG(heures, minutes) {
 }
 function formatHeure(h, m) { return `${h}h${m ? String(m).padStart(2, '0') : '00'}`; }
 function genereHorloge() {
-  const age = joueur ? joueur.age : 7;
+  const p = profilAge();
   const h = alea(1, 12);
-  const m = age <= 6 ? choix([0, 30]) : choix([0, 15, 30, 45]);
+  const m = Array.isArray(p.hor) ? choix(p.hor) : choix([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
+  const minutesPossibles = Array.isArray(p.hor) ? [0, 15, 30, 45] : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
   const bonne = formatHeure(h, m);
   const mauvaises = new Set();
   while (mauvaises.size < 3) {
@@ -227,7 +259,7 @@ function genereHorloge() {
       const dh = ((h + alea(1, 4) - 1 + 12) % 12) + 1;
       mauvaises.add(formatHeure(dh, m));
     } else {
-      const dm = choix([0, 15, 30, 45].filter(x => x !== m));
+      const dm = choix(minutesPossibles.filter(x => x !== m));
       mauvaises.add(formatHeure(h, dm));
     }
   }
@@ -241,14 +273,14 @@ function genereHorloge() {
 
 /* ---------- Monnaie ---------- */
 function genereMonnaie() {
-  const age = joueur ? joueur.age : 7;
+  const p = profilAge();
   const valeurs = [];
-  if (age <= 6) {
+  if (!p.money) {
     const n = alea(2, 5);
     for (let i = 0; i < n; i++) valeurs.push(choix([1, 2]));
   } else {
-    const nBillets = alea(0, 2);
-    for (let i = 0; i < nBillets; i++) valeurs.push(choix([5, 10]));
+    const nBillets = alea(1, p.money === 20 ? 3 : 2);
+    for (let i = 0; i < nBillets; i++) valeurs.push(choix(p.money === 20 ? [5, 10, 20] : [5, 10]));
     const nPieces = alea(2, 5);
     for (let i = 0; i < nPieces; i++) valeurs.push(choix([1, 2]));
   }
@@ -257,7 +289,8 @@ function genereMonnaie() {
     1: '<div class="piece-monnaie p1">1&nbsp;€</div>',
     2: '<div class="piece-monnaie p2">2&nbsp;€</div>',
     5: '<div class="billet b5">5&nbsp;€</div>',
-    10: '<div class="billet b10">10&nbsp;€</div>'
+    10: '<div class="billet b10">10&nbsp;€</div>',
+    20: '<div class="billet b20">20&nbsp;€</div>'
   };
   const total = valeurs.reduce((a, b) => a + b, 0);
   const visuelItems = valeurs.map(v => rendu[v]).join('');
@@ -331,22 +364,29 @@ function genereQuestionsDuel(difficulte) {
   return Array.from({ length: 5 }, () => genereCalcul(cfg[0], cfg[1], cfg[2]));
 }
 function genereDefiJour() {
-  const age = joueur.age;
-  const max = age <= 6 ? 10 : age <= 8 ? 20 : 40;
-  const types = age <= 6
+  const p = profilAge();
+  const types = !p.div
     ? [() => genereCalcul('add', 1, 10), () => genereCalcul('sub', 1, 10)]
-    : [() => genereCalcul('mixed', 1, max), () => genereVraiFaux(1, max), genereManquant, genereSuite,
-       () => genereComparaison(), () => genereCalcul('div')];
+    : [() => genereCalcul('mixed'), genereVraiFaux, genereManquant, genereSuite,
+       genereComparaison, () => genereCalcul('div'), genereSuite];
+  // Pour les plus grands, un peu de défi chrono mental corsé
+  if (joueur.age >= 11) types.push(() => genereCalcul('mixeddur'), () => genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]));
   return Array.from({ length: 10 }, () => choix(types)());
 }
 function genereBoss() {
+  const p = profilAge();
+  const types = ['mixeddur', 'horloge', 'formes', 'comparaison', genereSuite];
+  if (joueur.age >= 7) types.push('mul');
+  if (p.div) types.push('div');
+  if (joueur.age >= 11) types.push('mul', 'div');
   return Array.from({ length: 15 }, () => {
-    const t = choix(['mixeddur', 'mul', 'div', 'horloge', 'formes', 'comparaison']);
-    if (t === 'mixeddur') return genereCalcul('mixeddur', 10, 60);
-    if (t === 'mul') return genereCalcul('multranche', 0, 0, null, [4, 9]);
+    const t = choix(types);
+    if (t === 'mixeddur') return genereCalcul('mixeddur');
+    if (t === 'mul') return genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]);
     if (t === 'div') return genereCalcul('div');
     if (t === 'horloge') return genereHorloge();
     if (t === 'formes') return genereFormes();
+    if (typeof t === 'function') return t();
     return genereComparaison();
   });
 }

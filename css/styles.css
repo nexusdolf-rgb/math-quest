@@ -391,6 +391,7 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 .billet { width: 96px; height: 56px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 1.1rem; box-shadow: var(--ombre-petite); }
 .billet.b5 { background: linear-gradient(135deg,#4ade80,#16a34a); }
 .billet.b10 { background: linear-gradient(135deg,#60a5fa,#2563eb); }
+.billet.b20 { background: linear-gradient(135deg,#c084fc,#7c3aed); }
 /* ---------- Formes ---------- */
 .forme-svg { width: 180px; height: 180px; display: block; margin: 0 auto; }
 /* ---------- Dizaines ---------- */
@@ -486,6 +487,9 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%) translateY(30px); background: var(--encre); color: #fff; padding: 11px 21px; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: all .3s; z-index: 90; max-width: 92vw; text-align: center; font-size: .92rem; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; }
+
+/* Badge "Powered by Netlify" injecté par la plateforme : masqué */
+#nl-badge-frame, iframe[title="Powered by Netlify"] { display: none !important; width: 0 !important; height: 0 !important; border: 0 !important; }
 
 /* ---------- Écran de bienvenue ---------- */
 .logo { font-size: 3.2rem; text-align: center; line-height: 1; animation: pulse 2s ease-in-out infinite; }

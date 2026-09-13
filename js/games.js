@@ -6,7 +6,7 @@
 
 /* =================  DEVINETTE  ================= */
 function ecranDevinette() {
-  const maxi = joueur.age <= 6 ? 50 : 100;
+  const maxi = profilAge().dev;
   JEU.devinette = { secret: alea(1, maxi), maxi, essais: [], saisie: '', fini: false, dernierEtat: '', message: '' };
   rendreDevinette();
 }
@@ -70,7 +70,8 @@ function devineValide() {
 
 /* =================  ORDRE DES NOMBRES  ================= */
 function ecranOrdre() {
-  const max = joueur.age <= 6 ? 20 : 50;
+  const p = profilAge();
+  const max = joueur.age <= 6 ? 20 : Math.max(50, p.max);
   const nombres = new Set();
   while (nombres.size < 5) nombres.add(alea(1, max));
   JEU.ordre = { cible: [...nombres].sort((a, b) => a - b), melanges: melange([...nombres]), pris: [], erreurs: 0, position: 0, erreurIndex: null };
@@ -130,11 +131,22 @@ function ordreTouche(i) {
 function ecranMemory() {
   const paires = [];
   const utilisees = new Set();
+  const mode = profilAge().mem;
   while (paires.length < 6) {
-    const a = alea(1, 10), b = alea(1, 10), v = a + b;
-    if (utilisees.has(v)) continue;
-    utilisees.add(v);
-    paires.push({ exp: `${a} + ${b}`, val: v });
+    let paire;
+    if (mode === 'mul') {
+      const a = alea(2, 9), b = alea(2, 9), v = a * b;
+      paire = { exp: `${a} × ${b}`, val: v };
+    } else if (mode === 'div') {
+      const diviseur = alea(2, 9), q = alea(2, 10), total = diviseur * q;
+      paire = { exp: `${total} ÷ ${diviseur}`, val: q };
+    } else {
+      const a = alea(1, 10), b = alea(1, 10);
+      paire = { exp: `${a} + ${b}`, val: a + b };
+    }
+    if (utilisees.has(paire.val)) continue;
+    utilisees.add(paire.val);
+    paires.push(paire);
   }
   const cartes = [];
   paires.forEach((p, idx) => {
@@ -249,13 +261,14 @@ function peintCellule(cle) {
       parfait: false, opStats: { autre: 1 }, bonusPieces: 20
     });
     pluieConfettis(120); sfx('niveau');
+    AudioMX.voix('bravo', true);
     apres(() => dire(`🎉 ${modele.emoji} ${modele.nom} terminé ! +${gain.pieces} pièces`), 200);
   }
 }
 
 /* =================  FUSÉE  ================= */
 function ecranFusee() {
-  JEU.fusee = { restant: 60, score: 0, fini: false, verrouille: false, question: null, opStats: {} };
+  JEU.fusee = { restant: 60, score: 0, fini: false, verrouille: false, question: null, opStats: {}, dernierTick: null };
   JEU.dernier = { type: 'mode', mode: 'fusee' };
   nouvelleQuestionFusee();
   rendreFusee();
@@ -263,15 +276,16 @@ function ecranFusee() {
     const f = JEU.fusee;
     f.restant -= .1;
     const t = $('#fusee-chrono'), barre = $('#fusee-barre'), fus = $('#fusee-emoji');
-    if (t) { t.textContent = Math.ceil(f.restant); t.classList.toggle('danger', f.restant <= 10); }
+    const sec = Math.ceil(f.restant);
+    if (t) { t.textContent = sec; t.classList.toggle('danger', f.restant <= 10); }
     if (barre) barre.style.width = `${f.restant / 60 * 100}%`;
     if (fus) fus.style.bottom = `${8 + Math.min(100, f.score * 6)}px`;
+    if (sec <= 5 && sec >= 1 && sec !== f.dernierTick) { f.dernierTick = sec; sfx('tick'); }
     if (f.restant <= 0) finirFusee();
   }, 100);
 }
 function nouvelleQuestionFusee() {
-  const age = joueur.age;
-  const q = genereCalcul('mixed', 1, age <= 6 ? 10 : age <= 8 ? 20 : 30);
+  const q = genereCalcul('mixed');
   const bonTexte = q.options[q.answer];
   const distracteurs = melange(q.options.filter((_, i) => i !== q.answer)).slice(0, 2);
   q.options = melange([bonTexte, ...distracteurs]);
@@ -309,6 +323,8 @@ function fuseeRepond(i) {
     f.score++;
     f.opStats[q.op || 'autre'] = (f.opStats[q.op || 'autre'] || 0) + 1;
     sfx('bonne', f.score);
+    if (f.score % 10 === 0) AudioMX.voix('combo', true);
+    else AudioMX.voix('bonne');
     if (boutons[i]) flottantSurElement(boutons[i], '+1 ⭐', '#16a34a');
   } else {
     boutons[i].classList.add('mauvaise'); sfx('faute');
@@ -341,28 +357,31 @@ function finirFusee() {
 
 /* =================  TAPE-TAUPE (NOUVEAU)  ================= */
 function ecranTaupe() {
-  JEU.taupe = { restant: 30, score: 0, serie: 0, cible: null, trous: Array(9).fill(null), fini: false, opStats: {} };
+  const p = profilAge();
+  JEU.taupe = { restant: 30, score: 0, serie: 0, cible: null, trous: Array(9).fill(null), fini: false, opStats: {}, voleeMs: p.taupeMs, dernierTick: null };
   JEU.dernier = { type: 'mode', mode: 'taupe' };
   nouvelleVoleeTaupe();
   rendreTaupe();
-  // changement de volée automatique
+  // changement de volée automatique (plus rapide avec l'âge/niveau)
   JEU.taupe.voleeTimer = toutesLes(() => {
     const t = JEU.taupe;
     if (t.fini) return;
     nouvelleVoleeTaupe(); rendreTaupe();
-  }, 1500);
+  }, p.taupeMs);
   JEU.taupe.chrono = toutesLes(() => {
     const t = JEU.taupe;
     t.restant -= .1;
     const el = $('#taupe-chrono'), barre = $('#taupe-barre');
-    if (el) { el.textContent = Math.ceil(t.restant); el.classList.toggle('danger', t.restant <= 10); }
+    const sec = Math.ceil(t.restant);
+    if (el) { el.textContent = sec; el.classList.toggle('danger', t.restant <= 10); }
     if (barre) barre.style.width = `${t.restant / 30 * 100}%`;
+    if (sec <= 5 && sec >= 1 && sec !== t.dernierTick) { t.dernierTick = sec; sfx('tick'); }
     if (t.restant <= 0) finirTaupe();
   }, 100);
 }
 function nouvelleVoleeTaupe() {
   const t = JEU.taupe;
-  const niveauMax = joueur.age <= 6 ? 10 : joueur.age <= 8 ? 20 : 30;
+  const niveauMax = profilAge().taupe;
   const trous = Array(9).fill(null);
   const positions = melange([0, 1, 2, 3, 4, 5, 6, 7, 8]).slice(0, alea(3, 4));
   // 1 bonne taupe dont la valeur devient la cible
@@ -404,7 +423,9 @@ function taupeTape(i) {
   if (e.valeur === t.cible) {
     t.score++; t.serie++;
     t.opStats[e.op || 'autre'] = (t.opStats[e.op || 'autre'] || 0) + 1;
-    sfx('taupe');
+    sfx('taupe', t.serie);
+    if (t.serie % 5 === 0) AudioMX.voix('combo', true);
+    else AudioMX.voix('bonne');
     if (trou) {
       trou.classList.add('tap-ok');
       const r = trou.getBoundingClientRect();

@@ -163,11 +163,14 @@ function traiterReponse(i) {
     const msg = g.serie >= 5 ? `Combo ×${Math.min(5, 1 + Math.floor(g.serie / 5))} ! 🔥`
       : choix(['Correct !', 'Super !', 'Génial !', 'Bravo ! 👏', 'Ouais ! 🎉']);
     afficherFeedback(msg, true);
+    if (g.serie === 5 || g.serie === 10 || g.serie === 15) AudioMX.voix('combo', true);
+    else AudioMX.voix('bonne');
   } else {
     g.serie = 0; q._rate = true;
     sfx('faute');
     if (i >= 0) boutons[i].classList.add('mauvaise');
     afficherFeedback(i < 0 ? '⏰ Temps écoulé !' : '❌ Faux !', false);
+    AudioMX.voix('faute');
   }
   apres(() => {
     g.idx++;

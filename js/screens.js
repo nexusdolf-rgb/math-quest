@@ -58,6 +58,8 @@ function ecranBienvenue() {
         <div class="age-selecteur">
           ${[5, 6, 7, 8, 9, 10, 11, 12].map(a =>
             `<button class="age-btn ${a === tempAge ? 'selected' : ''}" data-act="choisir-age" data-age="${a}">${a}</button>`).join('')}
+          <button class="age-btn ${tempAge === 14 ? 'selected' : ''}" data-act="choisir-age" data-age="14" style="font-size:.95rem">13-15</button>
+          <button class="age-btn ${tempAge === 20 ? 'selected' : ''}" data-act="choisir-age" data-age="20" style="font-size:.95rem">Adulte</button>
         </div>
       </div>
       <button class="btn btn-grand btn-principal" data-act="creer-compte">C'est parti ! 🚀</button>
@@ -81,7 +83,7 @@ function ecranAccueil() {
     <div class="haut">
       ${puceProfil()}
       ${pucePieces()}
-      <button class="btn btn-retour" data-act="son" title="Son">${AudioMX.prefs.son ? '🔊' : '🔇'}</button>
+      <button class="btn btn-retour" data-act="son" title="Son (tout activer/couper)">${AudioMX.toutActif() ? '🔊' : '🔇'}</button>
     </div>
     <div class="xp-barre"><div class="xp-remplissage" style="width:${pct}%"></div></div>
     <div class="xp-texte"><span>⭐ ${joueur.xp} XP</span><span>${seuilSuivant ? `Prochain titre : ${seuilSuivant} XP` : 'Niveau maximum ! 👑'}</span></div>
@@ -406,11 +408,19 @@ function ecranReglages() {
     <div class="carte">
       <div class="interrupteur-ligne">
         <span>🔊 Effets sonores</span>
-        <button class="interrupteur ${AudioMX.prefs.son ? 'on' : ''}" data-act="reglage-son" aria-label="Sons"></button>
+        <button class="interrupteur ${AudioMX.prefs.effets ? 'on' : ''}" data-act="reglage-effets" aria-label="Effets sonores"></button>
+      </div>
+      <div class="interrupteur-ligne">
+        <span>🗣️ Voix d'encouragement</span>
+        <button class="interrupteur ${AudioMX.prefs.voix ? 'on' : ''}" data-act="reglage-voix" aria-label="Voix"></button>
       </div>
       <div class="interrupteur-ligne">
         <span>🎵 Musique de fond</span>
         <button class="interrupteur ${AudioMX.prefs.musique ? 'on' : ''}" data-act="reglage-musique" aria-label="Musique"></button>
+      </div>
+      <div class="interrupteur-ligne">
+        <span>🔇 Tout couper d'un coup</span>
+        <button class="interrupteur ${AudioMX.toutActif() ? 'on' : ''}" data-act="reglage-tout" aria-label="Tout couper"></button>
       </div>
       <div class="interrupteur-ligne">
         <span>🌈 Thème : ${THEMES.find(t => t.id === joueur.theme)?.emoji || '🌈'} ${THEMES.find(t => t.id === joueur.theme)?.nom || 'Classique'}</span>
@@ -480,4 +490,15 @@ function ecranResultats(r) {
       </div>
     </div>`);
   animeEtoiles();
+  // Voix de victoire / d'encouragement
+  setTimeout(() => {
+    const ratio = r.justes / Math.max(1, r.total);
+    if (r.boss && ratio >= .999) AudioMX.voix('boss', true);
+    else if (ratio >= .999) AudioMX.voix('victoire', true);
+    else if (ratio >= .5) AudioMX.voix('bravo', true);
+    else AudioMX.voix('encouragement', true);
+    if (r.badges && r.badges.length && ratio < .999) {
+      setTimeout(() => AudioMX.voix('badge', true), 2200);
+    }
+  }, 600);
 }

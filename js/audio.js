@@ -1,17 +1,29 @@
 /* ============================================================
    MATH QUEST v2 — audio.js
-   Effets sonores et musique générés avec Web Audio API
-   (aucun fichier à télécharger)
+   Effets sonores variés, musique de fond et VOIX d'encouragement
+   (Web Audio API + synthèse vocale du navigateur, aucun fichier)
    ============================================================ */
 'use strict';
 
 const AudioMX = {
   ctx: null,
-  prefs: stockage.get('mq_prefs', { son: true, musique: true }),
+  /* Migration d'anciennes préférences (son/musique) vers les 3 réglages */
+  prefs: (() => {
+    const anciennes = stockage.get('mq_prefs', null);
+    if (anciennes && 'effets' in anciennes) return anciennes;
+    return {
+      effets: anciennes ? anciennes.son !== false : true,
+      voix: true,
+      musique: anciennes ? anciennes.musique !== false : true
+    };
+  })(),
   musiqueTimer: null,
   prochaineNote: 0,
   tempo: 108,
+  derniereVoix: 0,
+  voixFR: null,
 
+  _sauver() { stockage.set('mq_prefs', this.prefs); },
   _assurer() {
     if (!this.ctx) {
       try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch { return null; }
@@ -19,31 +31,55 @@ const AudioMX = {
     if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
     return this.ctx;
   },
-  /* Tout premier geste : débloque le son et démarre la musique */
+  /* Appelé au premier geste (clic) : débloque le son + la parole */
   deverrouiller() {
     this._assurer();
+    this._choisirVoix();
+    if ('speechSynthesis' in window) {
+      // Chrome charge les voix de façon asynchrone
+      window.speechSynthesis.onvoiceschanged = () => this._choisirVoix();
+    }
     if (this.prefs.musique) this.demarrerMusique();
   },
-  setSon(actif) { this.prefs.son = actif; stockage.set('mq_prefs', this.prefs); },
-  setMusique(actif) {
-    this.prefs.musique = actif; stockage.set('mq_prefs', this.prefs);
-    if (actif) { this._assurer(); this.demarrerMusique(); } else this.arreterMusique();
+
+  /* ---------- Réglages ---------- */
+  setEffets(v) { this.prefs.effets = v; this._sauver(); },
+  setVoix(v) {
+    this.prefs.voix = v; this._sauver();
+    if (!v && 'speechSynthesis' in window) try { window.speechSynthesis.cancel(); } catch {}
+  },
+  setMusique(v) {
+    this.prefs.musique = v; this._sauver();
+    if (v) { this._assurer(); this.demarrerMusique(); } else this.arreterMusique();
+  },
+  /* Muet général (bouton haut de l'accueil) */
+  toutActif() { return this.prefs.effets && this.prefs.voix && this.prefs.musique; },
+  basculerGlobal() {
+    const on = !this.toutActif();
+    this.prefs.effets = on; this.prefs.voix = on; this.prefs.musique = on;
+    if (on) { this._assurer(); this.demarrerMusique(); }
+    else { this.arreterMusique(); if ('speechSynthesis' in window) try { window.speechSynthesis.cancel(); } catch {} }
+    this._sauver();
+    return on;
   },
 
-  _note(freq, debut, duree, type = 'triangle', volume = .14) {
+  /* ---------- Notes ---------- */
+  _note(freq, debut, duree, type = 'triangle', volume = .13) {
     const ctx = this.ctx;
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
     osc.frequency.setValueAtTime(freq, debut);
     gain.gain.setValueAtTime(.0001, debut);
-    gain.gain.exponentialRampToValueAtTime(volume, debut + .015);
+    gain.gain.exponentialRampToValueAtTime(volume, debut + .012);
     gain.gain.exponentialRampToValueAtTime(.0001, debut + duree);
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(debut); osc.stop(debut + duree + .03);
   },
-  _glissement(f1, f2, debut, duree, type = 'sine', volume = .1) {
+  _glisse(f1, f2, debut, duree, type = 'sine', volume = .09) {
     const ctx = this.ctx;
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -54,56 +90,125 @@ const AudioMX = {
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(debut); osc.stop(debut + duree + .03);
   },
-
-  sfx(genre, combo = 0) {
-    if (!this.prefs.son) return;
+  /* une suite de notes [freq, decalage, duree, type, volume] */
+  _suite(notes) {
     const ctx = this._assurer();
     if (!ctx) return;
     const t = ctx.currentTime;
-    const N = (f, i, d, type, v) => this._note(f, t + i, d, type || 'triangle', v || .14);
-    const hausse = 1 + Math.min(combo, 8) * .03; // les bonnes séries montent en hauteur
+    notes.forEach(([f, dec, du, type, vol]) => this._note(f, t + dec, du, type || 'triangle', vol || .13));
+  },
+
+  sfx(genre, combo = 0) {
+    if (!this.prefs.effets) return;
+    const ctx = this._assurer();
+    if (!ctx) return;
+    const hausse = 1 + Math.min(combo, 10) * .025;
+    // Plusieurs variantes mélodiques pour éviter la répétition
+    const jinglesBonne = [
+      [[523, 0, .09], [659, .08, .09], [784, .16, .14]],
+      [[587, 0, .09], [740, .08, .09], [880, .16, .14]],
+      [[659, 0, .09], [784, .08, .09], [988, .16, .14]],
+      [[523, 0, .08], [784, .08, .12], [1047, .18, .16]]
+    ];
     switch (genre) {
-      case 'clic':    N(500, 0, .06, 'square', .05); break;
+      case 'clic':
+        this._suite([[560 + alea(-40, 40), 0, .05, 'square', .045]]); break;
       case 'bonne':
-        N(523 * hausse, 0, .1); N(659 * hausse, .09, .1); N(784 * hausse, .18, .16); break;
-      case 'faute':   this._glissement(240, 130, t, .25, 'sawtooth', .09); break;
-      case 'etoile':  N(784, 0, .09); N(988, .09, .09); N(1175, .18, .12); N(1568, .27, .2); break;
-      case 'niveau':  [523, 659, 784, 1047].forEach((f, i) => N(f, i * .11, .22)); break;
-      case 'piece':   N(988, 0, .06, 'square', .09); N(1319, .07, .16, 'square', .09); break;
-      case 'achat':   [659, 784, 988, 1319].forEach((f, i) => N(f, i * .07, .14)); break;
-      case 'whoosh':  this._glissement(200, 900, t, .25, 'sine', .07); break;
-      case 'tick':    N(880, 0, .04, 'square', .05); break;
-      case 'taupe':   N(330, 0, .07, 'square', .12); this._glissement(700, 200, t, .12, 'sine', .08); break;
-      case 'boss':    [392, 392, 523, 659, 784].forEach((f, i) => N(f, i * .12, .25, 'sawtooth', .07)); break;
-      case 'debloque':[523, 659, 784, 1047, 1319].forEach((f, i) => N(f, i * .08, .2)); break;
-      case 'jour':    N(587, 0, .1); N(740, .1, .1); N(880, .2, .25); break;
-      default:        N(440, 0, .1);
+        this._suite(jinglesBonne[alea(0, jinglesBonne.length - 1)].map(
+          ([f, d, du]) => [f * hausse, d, du]));
+        break;
+      case 'faute':
+        this._suite([[330, 0, .12, 'sine', .1], [247, .12, .18, 'sine', .1]]); break;
+      case 'tick':
+        this._suite([[880, 0, .04, 'square', .05]]); break;
+      case 'compte':
+        this._suite([[440, 0, .08], [440, .18, .08], [660, .38, .22]]); break;
+      case 'etoile':
+        this._suite([[784, 0, .09], [988, .09, .09], [1175, .18, .11], [1568, .27, .2]]); break;
+      case 'niveau':
+        this._suite([[523, 0, .12], [659, .12, .12], [784, .24, .12], [1047, .36, .28]]); break;
+      case 'piece':
+        this._suite([[988, 0, .05, 'square', .09], [1319, .06, .15, 'square', .09]]); break;
+      case 'achat':
+        this._suite([[659, 0, .09], [784, .08, .09], [988, .16, .09], [1319, .24, .18]]); break;
+      case 'whoosh':
+        this._glisse(200, 950, ctx.currentTime, .25, 'sine', .06); break;
+      case 'taupe':
+        this._suite([[523, 0, .05, 'square', .12], [784, .05, .06, 'square', .1], [1047, .11, .09, 'square', .08]]); break;
+      case 'boss':
+        this._suite([[392, 0, .2, 'sawtooth', .05], [392, .18, .2, 'sawtooth', .05], [523, .36, .18], [659, .5, .18], [784, .64, .3]]); break;
+      case 'debloque':
+        this._suite([[523, 0, .08], [659, .08, .08], [784, .16, .08], [1047, .24, .1], [1319, .32, .22]]); break;
+      case 'jour':
+        this._suite([[587, 0, .09], [740, .09, .09], [880, .18, .24]]); break;
+      case 'ferme':
+        this._glisse(500, 260, ctx.currentTime, .15, 'sine', .05); break;
+      default:
+        this._suite([[440, 0, .1]]);
     }
   },
 
-  /* ---------- Musique de fond : boucle joyeuse (lead + basse) ---------- */
+  /* ---------- VOIX d'encouragement (voix d'enfant) ---------- */
+  lignes: {
+    bonne: ['Bravo !', 'Super !', 'Génial !', 'Bien joué !', 'Exact !', 'Ouais !', 'Top !', 'Tu déchires !', 'Incroyable !', 'Quel champion !'],
+    combo: ['Quel combo !', 'Tu es en feu !', 'Imbattable !', 'Continue comme ça !', 'Tu es trop fort !'],
+    faute: ['Réessaie !', 'Pas grave !', 'Encore un effort !', 'Tu vas y arriver !', 'Presque !'],
+    victoire: ['Victoire !', 'Tu as gagné !', 'Magnifique !', 'Tu es trop fort !', 'Quelle victoire !'],
+    bravo: ['Bravo, niveau terminé !', 'Parfait, tu es un champion !', 'Trop bien joué !'],
+    encouragement: ['Bien joué, continue !', 'Tu progresses, bravo !', 'Ne lâche rien !'],
+    badge: ['Nouveau badge !', 'Tu as gagné un badge !'],
+    accueil: ['Bonjour et bienvenue !', 'Content de te revoir !', 'Youpi, on joue ensemble !'],
+    boss: ['Victoire ! Tu as battu le boss !']
+  },
+  _choisirVoix() {
+    if (!('speechSynthesis' in window)) return;
+    const voix = window.speechSynthesis.getVoices();
+    this.voixFR = voix.find(v => /fr[-_]FR/i.test(v.lang)) ||
+                 voix.find(v => /^fr/i.test(v.lang)) || null;
+  },
+  parler(texte) {
+    if (!this.prefs.voix || !('speechSynthesis' in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(texte);
+      u.lang = 'fr-FR';
+      if (this.voixFR) u.voice = this.voixFR;
+      u.pitch = 1.55;   // voix haute/aiguë → effet "enfant"
+      u.rate = 1.06;
+      u.volume = 1;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch {}
+  },
+  voix(categorie, force = false) {
+    if (!this.prefs.voix) return;
+    const maintenant = Date.now();
+    if (!force && maintenant - this.derniereVoix < 3200) return;
+    this.derniereVoix = maintenant;
+    const liste = this.lignes[categorie];
+    if (liste) this.parler(choix(liste));
+  },
+
+  /* ---------- Musique de fond originale ---------- */
   demarrerMusique() {
     const ctx = this._assurer();
-    if (!ctx || this.musiqueTimer) return;
+    if (!ctx || !this.prefs.musique || this.musiqueTimer) return;
     const P = n => 440 * Math.pow(2, (n - 69) / 12);
-    // Mélodie originale (notes MIDI), 32 pas
     const LEAD = [
       72, 76, 79, 76, 72, 76, 79, 84, 83, 79, 76, 72, 74, 76, 0, 72,
       72, 76, 79, 76, 72, 76, 79, 84, 87, 84, 79, 76, 74, 72, 0, 0
     ];
     const BASS = [48, 0, 48, 0, 53, 0, 53, 0, 55, 0, 55, 0, 50, 0, 50, 0];
-    const pas = 60 / this.tempo / 2; // durée d'un pas
+    const pas = 60 / this.tempo / 2;
     let pasIndex = 0;
     let prochaine = ctx.currentTime + .1;
-
     const boucle = () => {
       if (!this.ctx) return;
       const maintenant = this.ctx.currentTime;
       while (prochaine < maintenant + .35) {
         const lead = LEAD[pasIndex % LEAD.length];
         const basse = BASS[pasIndex % BASS.length];
-        if (lead) this._note(P(lead), prochaine, pas * 1.6, 'triangle', .04);
-        if (basse) this._note(P(basse), prochaine, pas * 1.7, 'sine', .045);
+        if (lead) this._note(P(lead), prochaine, pas * 1.6, 'triangle', .035);
+        if (basse) this._note(P(basse), prochaine, pas * 1.7, 'sine', .04);
         prochaine += pas;
         pasIndex++;
       }
@@ -115,5 +220,4 @@ const AudioMX = {
     if (this.musiqueTimer) { clearInterval(this.musiqueTimer); this.musiqueTimer = null; }
   }
 };
-/* Alias court utilisé partout */
 const sfx = (genre, combo = 0) => AudioMX.sfx(genre, combo);

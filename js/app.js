@@ -82,15 +82,23 @@ document.addEventListener('click', e => {
     /* Navigation */
     case 'nav': aller(d.ecran); break;
     case 'son':
-      AudioMX.setSon(!AudioMX.prefs.son);
+      AudioMX.basculerGlobal();
       ecranAccueil();
       break;
-    case 'reglage-son':
-      AudioMX.setSon(!AudioMX.prefs.son);
+    case 'reglage-effets':
+      AudioMX.setEffets(!AudioMX.prefs.effets);
+      ecranReglages();
+      break;
+    case 'reglage-voix':
+      AudioMX.setVoix(!AudioMX.prefs.voix);
       ecranReglages();
       break;
     case 'reglage-musique':
       AudioMX.setMusique(!AudioMX.prefs.musique);
+      ecranReglages();
+      break;
+    case 'reglage-tout':
+      AudioMX.basculerGlobal();
       ecranReglages();
       break;
 
@@ -188,6 +196,17 @@ function modaleRecompenseJour(r) {
     <p>${r.serie === 1 ? 'Content de te voir !' : `Série de ${r.serie} jour${r.serie > 1 ? 's' : ''} ! Tu es au top !`}</p>
     <div class="m-recomp">+${r.pieces} 🪙 pièces</div>
     <button class="btn btn-grand btn-orange" data-act="ferme-modale">Youpi ! 🎉</button>`);
+  sfx('jour');
+  setTimeout(() => AudioMX.voix('accueil', true), 300);
+}
+
+/* Retire le badge "Powered by Netlify" injecté sur les sites hébergés */
+function retirerBadgeNetlify() {
+  const retire = () => document
+    .querySelectorAll('#nl-badge-frame, iframe[title="Powered by Netlify"]')
+    .forEach(e => e.remove());
+  retire();
+  if (document.body) new MutationObserver(retire).observe(document.body, { childList: true });
 }
 document.addEventListener('click', e => {
   if (e.target.closest('[data-act="ferme-modale"]')) fermerModale();
@@ -211,6 +230,7 @@ window.MQ = {
 /* ---------- Démarrage ---------- */
 function demarrage() {
   migrer();
+  retirerBadgeNetlify();
   const splash = $('#splash');
   setTimeout(() => splash.classList.add('hors'), 900);
   setTimeout(() => splash.remove(), 1600);
