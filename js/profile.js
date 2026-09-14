@@ -239,9 +239,11 @@ function batRecord(cle, valeur, plusHaut = true) {
 /* opts: { mode, niveauId, justes, total, serie, etoiles, parfait, opStats:{add,...}, recordCle, recordValeur, bonusPieces } */
 function finSession(opts) {
   const parfait = opts.parfait !== undefined ? opts.parfait : opts.justes === opts.total;
-  let pieces = opts.justes * 2;
-  if (parfait && opts.justes > 1) pieces += 15;
-  if (opts.etoiles) pieces += opts.etoiles * 5;
+  // v3.1 : les pièces se gagnent un peu plus durement (1 par bonne réponse,
+  // petit bonus de qualité), ce qui donne de la valeur à la boutique.
+  let pieces = opts.justes;
+  if (parfait && opts.justes > 1) pieces += 8;
+  if (opts.etoiles) pieces += opts.etoiles * 3;
   if (opts.bonusPieces) pieces += opts.bonusPieces;
   let xp = opts.justes * 10 + (parfait && opts.justes > 1 ? 20 : 0);
   if (opts.etoiles) xp += opts.etoiles * 10;

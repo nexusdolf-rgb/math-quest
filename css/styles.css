@@ -629,3 +629,147 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 .cell-sud:active, .cellule:active, .trou:active { transform: scale(.92); }
 .cell-sud, .cellule, .trou { transition: transform .07s, background .15s; }
 .cell-sud.fausse { background: #fecaca !important; animation: secoue .4s; }
+
+/* ============================================================
+   v3.1 — MULTIJOUEUR, COURSE AUX MATHS, SALON EN LIGNE,
+   PETIT MARCHAND / BON COMPTE, ÉMOTES
+   ============================================================ */
+
+/* Hub multijoueur */
+.mp-nb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+.mp-boutons { display: flex; flex-direction: column; gap: 10px; }
+.mp-rejoindre { display: flex; gap: 10px; align-items: stretch; }
+.mp-rejoindre input {
+  flex: 1; min-width: 0; border: 3px solid #c4b5fd; border-radius: 16px;
+  font-size: 1.35rem; padding: 12px 10px; background: #fff; color: #1f2937;
+}
+.mp-rejoindre input:focus { outline: none; border-color: #8b5cf6; }
+
+/* Code de salon à 5 lettres */
+.code-salon { display: flex; justify-content: center; gap: 8px; margin: 14px 0 8px; }
+.code-salon span {
+  width: 52px; height: 64px; display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; font-weight: 900; color: #fff; border-radius: 14px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  box-shadow: 0 5px 0 #6d28d9, var(--ombre-petite);
+  animation: lettrePop .4s both;
+}
+.code-salon span:nth-child(2) { animation-delay: .07s; }
+.code-salon span:nth-child(3) { animation-delay: .14s; }
+.code-salon span:nth-child(4) { animation-delay: .21s; }
+.code-salon span:nth-child(5) { animation-delay: .28s; }
+@keyframes lettrePop { from { transform: scale(.3) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+.lien-salon {
+  background: #f3f0ff; border: 2px dashed #c4b5fd; border-radius: 12px; padding: 9px 11px;
+  font-size: .8rem; word-break: break-all; text-align: center; color: #5b21b6; margin: 6px 0 10px;
+}
+
+/* Joueurs dans le salon */
+.salon-joueurs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0; }
+.salon-joueur {
+  background: #fff; border: 3px solid #34d399; border-radius: 18px; padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px; box-shadow: var(--ombre-petite);
+  animation: lettrePop .3s both;
+}
+.tag-hote {
+  font-size: .68rem; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ef4444);
+  border-radius: 999px; padding: 2px 9px; text-transform: uppercase; letter-spacing: .5px;
+}
+.salon-chargement { text-align: center; padding: 22px 10px; color: #6b7280; }
+.spinner {
+  width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 12px;
+  border: 5px solid #ede9fe; border-top-color: #8b5cf6; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Boutons d'émoticônes + émotes flottantes */
+.emotes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.emotes .btn { font-size: 1.3rem; padding: 8px 13px; min-height: 44px; background: #fff; color: inherit; border: 2px solid #e5e7eb; }
+.emotes .btn:active { transform: scale(.92); }
+.emote-flottante {
+  position: fixed; right: 18px; bottom: 110px; z-index: 2000; pointer-events: none;
+  display: flex; align-items: center; gap: 8px; animation: emoteMonte 1.8s ease-out forwards;
+}
+.emote-avatar { font-size: 2.4rem; filter: drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+.emote-bulle {
+  background: #fff; border-radius: 18px 18px 18px 4px; padding: 7px 13px; font-size: 1.6rem;
+  box-shadow: var(--ombre-petite); border: 2px solid #fbcfe8;
+}
+@keyframes emoteMonte {
+  0% { transform: translateY(40px) scale(.4); opacity: 0; }
+  15% { transform: translateY(10px) scale(1.1); opacity: 1; }
+  30% { transform: translateY(0) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateY(-130px) scale(1); opacity: 0; }
+}
+
+/* Course aux Maths : plateau */
+.plateau-course {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 6px 0 10px;
+}
+.case-course {
+  position: relative; aspect-ratio: 1; border-radius: 10px; background: #fff;
+  border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 0 #e5e7eb;
+}
+.case-course .cc-num { font-size: .72rem; font-weight: 800; color: #9ca3af; position: absolute; top: 2px; left: 5px; }
+.case-course.arrivee .cc-num { font-size: 1.05rem; color: #b45309; }
+.case-course .cc-pions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0; line-height: 1;
+  font-size: 1.05rem; margin-top: 7px;
+}
+.course-joueurs { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-bottom: 8px; }
+.jeton-joueur {
+  color: #fff; font-weight: 800; font-size: .85rem; border-radius: 999px;
+  padding: 5px 12px; box-shadow: 0 2px 6px rgba(0,0,0,.18); display: inline-flex; align-items: center; gap: 3px;
+}
+.de-resultat { text-align: center; padding: 12px 6px 4px; }
+.de-de {
+  font-size: 3.2rem; font-weight: 900; color: #059669; margin: 6px 0;
+  display: inline-block; animation: deRoule .7s ease-out;
+}
+.de-de.rate { color: #ef4444; animation: shake .45s; }
+.de-msg { font-weight: 800; font-size: 1.15rem; color: #374151; }
+@keyframes deRoule {
+  0% { transform: rotate(0) scale(1); }
+  35% { transform: rotate(180deg) scale(1.35); }
+  70% { transform: rotate(340deg) scale(.95); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+.bonne-reponse-ligne {
+  background: linear-gradient(135deg,#d1fae5,#a7f3d0); border: 2px solid #34d399; color: #065f46;
+  font-weight: 800; font-size: 1.2rem; text-align: center; border-radius: 14px; padding: 11px; margin-top: 10px;
+}
+
+/* Le Petit Marchand */
+.marche-visuel {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 2px solid #fcd34d;
+  border-radius: 18px; padding: 16px; margin: 10px auto; max-width: 380px; text-align: center;
+}
+.marche-article { font-size: 3.2rem; line-height: 1.1; }
+.marche-article span { display: block; font-size: 1.15rem; font-weight: 800; color: #92400e; }
+.marche-prix, .marche-paye { font-size: 1.15rem; color: #374151; margin-top: 8px; }
+.marche-paye b { color: #059669; }
+.marche-prix b { color: #b45309; }
+
+/* Le Bon Compte */
+.comptebon-cible {
+  font-size: 2.6rem; font-weight: 900; text-align: center; color: #fff; margin: 8px auto;
+  background: linear-gradient(135deg,#22d3ee,#4f46e5); border-radius: 20px; padding: 14px;
+  max-width: 320px; box-shadow: 0 6px 0 #3730a3;
+  animation: lettrePop .35s both;
+}
+.comptebon-cible + .reponses .reponse { font-size: 1.25rem; font-weight: 700; }
+
+/* Ajustements mobiles */
+@media (max-width: 380px) {
+  .code-salon span { width: 44px; height: 56px; font-size: 1.7rem; }
+  .case-course .cc-pions { font-size: .9rem; }
+}
+
+/* Pastille d'avatar colorée selon l'équipe (podiums en ligne) */
+.pion-couleur {
+  width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center;
+  justify-content: center; font-size: 1.6rem; box-shadow: inset 0 -3px 6px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.15);
+}

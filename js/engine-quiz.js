@@ -47,7 +47,7 @@ function lancerDefiJour() {
   moteurQuiz({
     titre: '🎯 Défi du Jour',
     questions: genereDefiJour(),
-    bonusPieces: 50,
+    bonusPieces: 35,
     mode: 'defi',
     defi: true
   });
@@ -58,7 +58,7 @@ function lancerBoss() {
   moteurQuiz({
     titre: '👑 Boss des Maths',
     questions: genereBoss(),
-    bonusPieces: 60,
+    bonusPieces: 45,
     mode: 'boss',
     boss: true
   });
@@ -110,7 +110,7 @@ function rendreQuiz() {
         <div class="qh-avancee">Question ${g.idx + 1} / ${total} ${g.serie >= 3 ? `• 🔥 ${g.serie}` : ''}</div>
       </div>
       <button class="btn btn-retour" data-act="quiz-pause" title="Pause">⏸️</button>
-      <div class="qh-score">🪙 ${g.justes * 2}</div>
+      <div class="qh-score">🪙 ${g.justes}</div>
     </div>
     <div class="barre-progres"><div style="width:${g.idx / total * 100}%"></div></div>
     ${points}
@@ -184,7 +184,7 @@ function traiterReponse(i) {
     g.justes++; g.serie++; g.serieMax = Math.max(g.serieMax, g.serie);
     g.opStats[q.op || 'autre'] = (g.opStats[q.op || 'autre'] || 0) + 1;
     sfx('bonne', g.serie);
-    const piece = g.serie >= 5 ? 4 : 2;
+    const piece = g.serie >= 5 ? 2 : 1;
     if (boutons[i]) flottantSurElement(boutons[i], `+${piece} 🪙`, '#b45309');
     explosion(boutons[q.answer].getBoundingClientRect().left + 60, boutons[q.answer].getBoundingClientRect().top + 20, 10);
     const msg = g.serie >= 5 ? `Combo ×${Math.min(5, 1 + Math.floor(g.serie / 5))} ! 🔥`

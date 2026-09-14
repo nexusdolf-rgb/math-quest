@@ -163,31 +163,69 @@ const AudioMX = {
 
   /* ---------- VOIX d'encouragement (voix d'enfant) ---------- */
   lignes: {
-    bonne: ['Bravo !', 'Super !', 'Génial !', 'Bien joué !', 'Exact !', 'Ouais !', 'Top !', 'Tu déchires !', 'Incroyable !', 'Quel champion !'],
-    combo: ['Quel combo !', 'Tu es en feu !', 'Imbattable !', 'Continue comme ça !', 'Tu es trop fort !'],
-    faute: ['Réessaie !', 'Pas grave !', 'Encore un effort !', 'Tu vas y arriver !', 'Presque !'],
-    victoire: ['Victoire !', 'Tu as gagné !', 'Magnifique !', 'Tu es trop fort !', 'Quelle victoire !'],
-    bravo: ['Bravo, niveau terminé !', 'Parfait, tu es un champion !', 'Trop bien joué !'],
-    encouragement: ['Bien joué, continue !', 'Tu progresses, bravo !', 'Ne lâche rien !'],
-    badge: ['Nouveau badge !', 'Tu as gagné un badge !'],
-    accueil: ['Bonjour et bienvenue !', 'Content de te revoir !', 'Youpi, on joue ensemble !'],
-    boss: ['Victoire ! Tu as battu le boss !']
+    bonne: ['Bravo !', 'Super !', 'Génial !', 'Bien joué !', 'Exact !', 'Ouais !', 'Top !',
+      'Trop fort !', 'Incroyable !', 'Quel champion !', 'Youhou !', 'Waouh !', 'Nickel !', 'Trop bien !'],
+    combo: ['Quel combo !', 'Tu es en feu !', 'Imbattable !', 'Continue comme ça !',
+      'Tu es le plus fort !', 'Waouh, ça enchaîne !', 'Rien ne t\'arrête !'],
+    faute: ['Réessaie !', 'Pas grave !', 'Encore un effort !', 'Tu vas y arriver !',
+      'Presque !', 'Allez, courage !', 'Tu peux le faire !'],
+    victoire: ['Victoire !', 'Tu as gagné !', 'Magnifique !', 'Trop fort, tu as gagné !',
+      'Quelle victoire !', 'Youhou, gagné !', 'Hourra !'],
+    bravo: ['Bravo, niveau terminé !', 'Parfait, tu es un champion !', 'Trop bien joué !',
+      'Waouh, tu as tout réussi !'],
+    encouragement: ['Bien joué, continue !', 'Tu progresses, bravo !', 'Ne lâche rien !',
+      'Allez, encore un effort !'],
+    badge: ['Nouveau badge !', 'Tu as gagné un badge !', 'Regarde, un nouveau badge !'],
+    accueil: ['Bonjour et bienvenue !', 'Content de te revoir !', 'Youpi, on joue ensemble !',
+      'Coucou ! Prêt à jouer ?'],
+    boss: ['Hourra ! Tu as battu le boss !', 'Victoire ! Le boss est vaincu !']
   },
+  /* Sélectionne et NOTE les voix françaises pour un rendu "dessin animé"
+     naturel (certaines voix par défaut font très robot/peur si on les monte
+     trop : on leur préfère les voix Google / enfants / nommées). */
   _choisirVoix() {
     if (!('speechSynthesis' in window)) return;
     const toutes = window.speechSynthesis.getVoices();
     const fr = toutes.filter(v => /^fr/i.test(v.lang));
     const nom = v => (v.name || '').toLowerCase();
-    // Noms de voix françaises les plus souvent rencontrés (Android/iOS/Chrome)
-    const FEMININS = ['enfant','child','kid','girl','fille','amélie','amelie','audrey','caroline',
-      'denise','marie','virginie','céline','celine','julie','marine','manon','camille','chloé','chloe',
-      'léa','lea','eloise','éloïse','anna','hana','google français','femme','female','woman','samantha','amandine','juliette'];
-    const MASCULINS = ['thomas','henri','paul','mathieu','nicolas','julien','antoine','rémi','remi',
-      'gaël','gael','sylvain','homme','male','boy','garcon','garçon','maxime','gabriel','louis','arthur'];
-    const enfant = fr.find(v => /enfant|child|kid/i.test(nom(v)));
-    this.voixFilles = enfant || fr.find(v => FEMININS.some(m => nom(v).includes(m)));
-    this.voixGarcons = fr.find(v => MASCULINS.some(m => nom(v).includes(m)));
-    this.voixFR = fr.find(v => /fr[-_]fr/i.test(v.lang)) || fr[0] || null;
+    const note = v => {
+      const n = nom(v);
+      let s = 0;
+      if (/enfant|child|kid|petit|little/i.test(n)) s += 100;          // vraie voix d'enfant
+      if (/google/i.test(n)) s += 60;                                   // voix Google, très douces
+      if (/amélie|amelie|audrey|amelia|amandine|manon|camille|chlo|léa|lea|celine|céline|julie|marie|caroline|virginie|denise/i.test(n)) s += 45;
+      if (/thomas|henri|paul|mathieu|nicolas|julien|rémi|remi|gael|gaël|maxime|gabriel|arthur/i.test(n)) s += 45;
+      if (/fr[-_]fr/i.test(v.lang)) s += 8;
+      if (/natural|neural|online/i.test(n)) s += 12;
+      if (/microsoft|mobile/i.test(n)) s -= 5;
+      return s;
+    };
+    const classees = [...fr].sort((a, b) => note(b) - note(a));
+    const FEM = /enfant|child|kid|girl|fille|amélie|amelie|audrey|amelia|denise|marie|virginie|céline|celine|julie|marine|manon|camille|chlo|léa|lea|eloise|éloïse|anna|hana|amandine|juliette|samantha|femme|female|woman/i;
+    const MAS = /thomas|henri|paul|mathieu|nicolas|julien|antoine|rémi|remi|gaël|gael|sylvain|homme|male|boy|garcon|garçon|maxime|gabriel|louis|arthur/i;
+    const vraieEnfant = v => /enfant|child|kid|petit|little/i.test(nom(v));
+    const douceGenerique = v => /google|neural|natural|online/i.test(nom(v));
+    const feminine = classees.find(v => vraieEnfant(v) || FEM.test(nom(v)));
+    const meilleure = classees[0] || null;
+    // La meilleure voix globale (enfant ou voix cloud douce) convient à la fille ;
+    // sinon on prend la première voix féminine nommée.
+    this.voixFilles = (meilleure && (douceGenerique(meilleure) || vraieEnfant(meilleure)))
+      ? meilleure : (feminine || meilleure);
+    this.voixGarcons = classees.find(v => MAS.test(nom(v)) && !vraieEnfant(v)) || this.voixFilles;
+    this.voixFR = meilleure;
+  },
+  /* Hauteur de voix adaptée à la voix choisie :
+     - vraie voix d'enfant → laissée quasi naturelle
+     - voix Google douce → petit coup de jeune
+     - voix système de base → davantage rajeunie mais sans monter trop
+       (les très hautes hauteurs font l'effet "voix de dessin animé effrayant") */
+  _pitchPour(voix, genre) {
+    const n = (voix && voix.name || '').toLowerCase();
+    const enfant = /enfant|child|kid|petit|little/i.test(n);
+    const google = /google|neural|natural/i.test(n);
+    if (enfant) return genre === 'garcon' ? 1.0 + alea(0, 4) / 100 : 1.05 + alea(0, 5) / 100;
+    if (google) return genre === 'garcon' ? 1.06 + alea(0, 5) / 100 : 1.18 + alea(0, 6) / 100;
+    return genre === 'garcon' ? 1.10 + alea(0, 5) / 100 : 1.22 + alea(0, 5) / 100;
   },
   setVoixType(t) {
     this.prefs.voixType = t === 'garcon' ? 'garcon' : 'fille';
@@ -207,18 +245,8 @@ const AudioMX = {
         ? (this.voixGarcons || this.voixFilles || this.voixFR)
         : (this.voixFilles || this.voixGarcons || this.voixFR);
       if (choisie) u.voice = choisie;
-      // Si la voix choisie est DÉJÀ une voix d'enfant, on la garde presque
-      // naturelle ; sinon on remonte légèrement la hauteur pour la rajeunir,
-      // avec une petite variation à chaque phrase (rendu vivant, pas robotique).
-      const dejaEnfant = choisie && /enfant|child|kid/i.test(choisie.name || '');
-      if (dejaEnfant) {
-        u.pitch = genre === 'garcon' ? 1.02 + alea(-1, 2) / 40 : 1.06 + alea(-1, 2) / 40;
-      } else if (genre === 'garcon') {
-        u.pitch = 1.22 + alea(-1, 3) / 40;   // ~1.19–1.30
-      } else {
-        u.pitch = 1.42 + alea(-2, 3) / 40;   // ~1.37–1.50
-      }
-      u.rate = 1.0 + alea(-2, 2) / 120;      // ~0.98–1.02
+      u.pitch = this._pitchPour(choisie, genre);
+      u.rate = 1.03 + alea(-1, 2) / 100;   // débit enjoué, quasi naturel
       u.volume = 1;
       // Anti-bug Chrome/Android : un cancel() immédiatement suivi de speak()
       // fait parfois avaler la phrase → on décale de 60 ms et on annule

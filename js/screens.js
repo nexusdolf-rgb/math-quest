@@ -177,7 +177,7 @@ function carteJeuHTML(m) {
 function ecranJeux() {
   afficher(entetePage('🎮 Tous les jeux', 'accueil') + `
     <div class="grille-jeux">
-      ${MODES.map(carteJeuHTML).join('')}
+      ${MODES.filter(m => !m.cache).map(carteJeuHTML).join('')}
     </div>${navHTML('jeux')}`);
 }
 

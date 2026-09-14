@@ -6,7 +6,7 @@
 
 const MODES_QUIZ = ['divisions', 'vrai-faux', 'manquant', 'comparaison', 'fractions',
   'suite', 'compte', 'dizaines', 'horloge', 'monnaie', 'formes',
-  'suite-pro', 'equations'];
+  'suite-pro', 'equations', 'marche', 'compte-bon'];
 const ECRANS_JEUX_SPECIAUX = {
   devinette: ecranDevinette, ordre: ecranOrdre, memory: ecranMemory,
   coloriage: ecranColoriage, fusee: ecranFusee, taupe: ecranTaupe,
@@ -28,7 +28,8 @@ function aller(ecran) {
     classement: ecranClassement,
     profil: ecranProfil,
     reglages: ecranReglages,
-    diplome: ecranDiplome
+    diplome: ecranDiplome,
+    multijoueur: ecranMultijoueur
   };
   (ecrans[ecran] || ecranAccueil)();
 }
@@ -43,6 +44,7 @@ function ouvrirMode(mode) {
   if (aventureId) JEU.aventureId = aventureId;
   if (mode === 'calcul') return aller('niveaux');
   if (mode === 'tables') return aller('tables');
+  if (mode === 'multijoueur') return ecranMultijoueur();
   if (mode === 'duel') return ecranDuel(2);
   if (mode === 'party') { nbJoueursFete = 3; return rendreDuel(); }
   if (ECRANS_JEUX_SPECIAUX[mode]) return ECRANS_JEUX_SPECIAUX[mode]();
@@ -57,6 +59,7 @@ function refaireDernier() {
   if (der.type === 'boss') return lancerBoss();
   if (der.type === 'boss-aventure') return lancerBossAventure(der.boss, JEU.aventureId);
   if (der.type === 'fete') return relancerFete();
+  if (der.type === 'course-locale') return lancerCourseLocale();
   if (der.type === 'mode') {
     if (ECRANS_JEUX_SPECIAUX[der.mode]) return ECRANS_JEUX_SPECIAUX[der.mode]();
     return lancerQuizMode(der.mode);
@@ -171,6 +174,36 @@ document.addEventListener('click', e => {
     case 'fete-commencer': commencerFete(); break;
     case 'fete-pret': jouerTourFete(); break;
 
+    /* ---------- Multijoueur (v3.1) ---------- */
+    case 'mp-nb': mpNb = parseInt(d.n, 10); ecranMultijoueur(); break;
+    case 'mp-diff': mpDiff = d.d; ecranMultijoueur(); break;
+    case 'mp-duel-local': lancerDuelLocal(); break;
+    case 'mp-course-local': lancerCourseLocale(); break;
+    case 'course-pret': questionCourseL(); break;
+    case 'course-rep-l': reponseCourseL(parseInt(d.i, 10)); break;
+    case 'course-suivant-l': suivantCourseL(); break;
+    case 'mp-creer': ecranCreerSalon(d.mode); break;
+    case 'mp-rejoindre': {
+      const inp = $('#code-salon');
+      const code = inp ? inp.value.trim() : '';
+      if (code.length < 5) { dire('✏️ Recopie les 5 lettres du code !'); return; }
+      ecranRejoindreSalon(code);
+      break;
+    }
+    case 'mp-copier': copierLienSalon(); break;
+    case 'mp-partager': partagerLienSalon(); break;
+    case 'mp-emote': Multi.emote(d.e); break;
+    case 'mp-lancer': lancerPartieLigne(); break;
+    case 'mp-quitter': Multi.quitter(true); ecranMultijoueur(); break;
+    case 'mp-quitter-jeu': Multi.quitter(true); aller('jeux'); break;
+    case 'duel-ligne-rep': repondreDuelLigne(parseInt(d.i, 10)); break;
+    case 'course-ligne-rep': repondreCourseLigne(parseInt(d.i, 10)); break;
+    case 'mp-encore':
+      if (Multi.role) { Multi.quitter(true); ecranMultijoueur(); }
+      else refaireDernier();
+      break;
+    case 'mp-encore-ligne': Multi.quitter(true); ecranMultijoueur(); break;
+
     /* Boutique */
     case 'boutique-onglet': boutiqueOnglet = d.o; ecranBoutique(); break;
     case 'equiper-theme': equiperTheme(d.id); sfx('piece'); ecranBoutique(); break;
@@ -270,5 +303,14 @@ function demarrage() {
   const r = connexionQuotidienne();
   ecranAccueil();
   if (r) apres(() => modaleRecompenseJour(r), 1100);
+
+  // Lien d'invitation multijoueur : /?salon=ABCDE rejoint directement le salon
+  try {
+    const code = new URLSearchParams(location.search).get('salon');
+    if (code) {
+      history.replaceState(null, '', location.pathname);
+      apres(() => ecranRejoindreSalon(code), 1200);
+    }
+  } catch {}
 }
 demarrage();

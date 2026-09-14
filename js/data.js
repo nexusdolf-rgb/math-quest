@@ -54,13 +54,17 @@ const MODES = [
   { id: 'formes',    nom: 'Formes Géométriques',    sous: 'Cercle, triangle, hexagone…',      emoji: '🔷', couleur: 'linear-gradient(135deg,#22d3ee,#0891b2)', nouveau: true },
   { id: 'fusee',     nom: 'Fusée',                  sous: '60 secondes, un max de calculs !', emoji: '🚀', couleur: 'linear-gradient(135deg,#60a5fa,#8b5cf6)' },
   { id: 'coloriage', nom: 'Coloriage Magique',      sous: 'Fais apparaître les dessins',      emoji: '🎨', couleur: 'linear-gradient(135deg,#f472b6,#a78bfa,#22d3ee)' },
-  { id: 'duel',      nom: 'Mode Duel',              sous: 'Affronte un ami',                  emoji: '⚔️', couleur: 'linear-gradient(135deg,#f43f5e,#a855f7,#06b6d4)' },
-  { id: 'party',     nom: 'Multijoueur',            sous: 'Joue à plusieurs (2 à 4)',         emoji: '🎉', couleur: 'linear-gradient(135deg,#34d399,#22d3ee,#3b82f6)' },
+  { id: 'duel',      nom: 'Mode Duel',              sous: 'Affronte un ami',                  emoji: '⚔️', cache: true, couleur: 'linear-gradient(135deg,#f43f5e,#a855f7,#06b6d4)' },
+  { id: 'party',     nom: 'Multijoueur',            sous: 'Joue à plusieurs (2 à 4)',         emoji: '🎉', cache: true, couleur: 'linear-gradient(135deg,#34d399,#22d3ee,#3b82f6)' },
   /* --- Jeux v3.0 --- */
   { id: 'pingpong',  nom: 'Ping-Pong Mental',       sous: 'Des calculs de plus en plus vite !', emoji: '🏓', couleur: 'linear-gradient(135deg,#34d399,#0ea5e9)', nouveau: true },
   { id: 'sudoku',    nom: 'Sudoku des Nombres',     sous: 'Logique et chiffres',             emoji: '🧩', couleur: 'linear-gradient(135deg,#a78bfa,#7c3aed)', nouveau: true },
   { id: 'suite-pro', nom: 'Suites Pro',             sous: 'Suites, carrés et géométrie',     emoji: '🎰', couleur: 'linear-gradient(135deg,#fb923c,#e11d48)', nouveau: true },
-  { id: 'equations', nom: 'Équations',              sous: 'Trouve x et les pourcentages',    emoji: '🧮', couleur: 'linear-gradient(135deg,#60a5fa,#1d4ed8)', nouveau: true }
+  { id: 'equations', nom: 'Équations',              sous: 'Trouve x et les pourcentages',    emoji: '🧮', couleur: 'linear-gradient(135deg,#60a5fa,#1d4ed8)', nouveau: true },
+  /* --- Jeux v3.1 --- */
+  { id: 'marche',    nom: 'Le Petit Marchand',      sous: 'Achats, paiement et monnaie rendue', emoji: '🛒', couleur: 'linear-gradient(135deg,#fcd34d,#ea580c)', nouveau: true },
+  { id: 'compte-bon', nom: 'Le Bon Compte',         sous: 'Trouve la bonne opération',       emoji: '🎯', couleur: 'linear-gradient(135deg,#22d3ee,#4f46e5)', nouveau: true },
+  { id: 'multijoueur', nom: 'À plusieurs !',       sous: 'Même téléphone ou en ligne 🌐',   emoji: '👥', couleur: 'linear-gradient(135deg,#34d399,#a78bfa,#ec4899)', nouveau: true }
 ];
 
 /* 16 badges */
@@ -130,13 +134,21 @@ const THEMES = [
 ];
 /* Boutique : accessoires d'avatar */
 const ACCESSOIRES = [
-  { id: 'couronne',  emoji: '👑', prix: 100 },
-  { id: 'chapeau',   emoji: '🎩', prix: 60 },
-  { id: 'sorcier',   emoji: '🧙', prix: 120 },
-  { id: 'casquette', emoji: '🧢', prix: 40 },
-  { id: 'noeud',     emoji: '🎀', prix: 40 },
-  { id: 'lunettes',  emoji: '🕶️', prix: 50 },
-  { id: 'heros',     emoji: '🦸', prix: 80 }
+  { id: 'couronne',  emoji: '👑', prix: 160 },
+  { id: 'chapeau',   emoji: '🎩', prix: 90 },
+  { id: 'sorcier',   emoji: '🧙', prix: 180 },
+  { id: 'casquette', emoji: '🧢', prix: 60 },
+  { id: 'noeud',     emoji: '🎀', prix: 60 },
+  { id: 'lunettes',  emoji: '🕶️', prix: 80 },
+  { id: 'heros',     emoji: '🦸', prix: 130 },
+  /* v3.1 */
+  { id: 'diplome',   emoji: '🎓', prix: 110 },
+  { id: 'cowboy',    emoji: '🤠', prix: 100 },
+  { id: 'fleur',     emoji: '👒', prix: 85 },
+  { id: 'masque',    emoji: '🦹', prix: 150 },
+  { id: 'casque',    emoji: '⛑️', prix: 95 },
+  { id: 'rosette',   emoji: '🏵️', prix: 75 },
+  { id: 'ninja',     emoji: '🥷', prix: 170 }
 ];
 
 /* Coloriages magiques (grilles ; . = case vide) */

@@ -422,7 +422,9 @@ function genereQuestionsMode(mode) {
     'monnaie': genereMonnaie,
     'formes': genereFormes,
     'suite-pro': genereSuitePro,
-    'equations': genereEquation
+    'equations': genereEquation,
+    'marche': genereMarche,
+    'compte-bon': genereCompteBon
   };
   const nb = mode === 'compte' ? 10 : 8;
   return Array.from({ length: nb }, constructeurs[mode]);
@@ -445,6 +447,86 @@ function genereDefiJour() {
   if (joueur.age >= 11) types.push(() => genereCalcul('mixeddur'), () => genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]));
   return Array.from({ length: 10 }, () => choix(types)());
 }
+/* ---------- Le Petit Marchand : rendre la monnaie ---------- */
+function genereMarche() {
+  const p = profilAge();
+  const a = joueur ? joueur.age : 7;
+  let billetsDispo, prixMax;
+  if (a <= 6) { billetsDispo = [5, 10]; prixMax = 9; }
+  else if (a <= 10) { billetsDispo = [10, 20]; prixMax = 19; }
+  else if (a <= 15) { billetsDispo = [20, 50]; prixMax = 48; }
+  else { billetsDispo = [20, 50, 100]; prixMax = 95; }
+  const billet = choix(billetsDispo);
+  const prix = alea(1, Math.min(prixMax, billet - 1));
+  const rendu = billet - prix;
+  const articles = ['🍎 Pomme', '🍞 Pain', '🥖 Baguette', '🧃 Jus de fruit', '🍪 Biscuit',
+    '📒 Cahier', '✏️ Crayon', '🍫 Chocolat', '🍭 Sucette', '🧸 Petit jouet', '📕 Livre', '🥤 Soda'];
+  const article = choix(articles);
+  const options = optionsNombre(rendu, [1, -1, 2, -2, 5, -5, 10, -10]);
+  return pack(rendu, options, `
+    <div class="marche-visuel">
+      <div class="marche-article">${article.split(' ')[0]}<span>${article.split(' ').slice(1).join(' ')}</span></div>
+      <div class="marche-prix">Prix : <b>${prix}&nbsp;€</b></div>
+      <div class="marche-paye">Tu paies avec <b>${billet}&nbsp;€</b></div>
+    </div>`, 'Combien te rend le marchand ?', 'autre');
+}
+
+/* ---------- Le Bon Compte : quelle opération donne le nombre cible ? ---------- */
+function genereCompteBon() {
+  const p = profilAge();
+  const a = joueur ? joueur.age : 7;
+  const cible = alea(Math.round(p.mix * .4) + 4, p.mix);
+  // Construit 4 expressions dont une exactement égale à la cible
+  const opsPossibles = ['add', 'sub',
+    ...(a >= 8 && p.mul2 ? ['mul'] : []),
+    ...(p.div ? ['div'] : [])];
+  const faireExpr = valeurVoulue => {
+    valeurVoulue = Math.max(2, valeurVoulue);
+    const t = choix(opsPossibles);
+    let texte, valeur;
+    if (t === 'mul' && valeurVoulue > 0) {
+      // un produit qui tombe (ou presque si fausse) sur la valeur voulue
+      const diviseurs = [];
+      for (let d = 2; d <= p.mul2; d++) if (valeurVoulue % d === 0) diviseurs.push(d);
+      if (diviseurs.length) {
+        const d = choix(diviseurs);
+        texte = `${valeurVoulue / d} × ${d}`; valeur = valeurVoulue;
+      } else {
+        // pas de produit tombant juste : on retombe sur la cible par soustraction
+        const retrait = alea(1, Math.max(1, valeurVoulue - 1));
+        texte = `${valeurVoulue + retrait} − ${retrait}`; valeur = valeurVoulue;
+      }
+    } else if (t === 'div' && valeurVoulue > 1 && valeurVoulue <= p.mul2) {
+      // on reste dans les tables connues : quotient ≤ table max, pas de gros dividende
+      const q = valeurVoulue, b = alea(2, p.divB || 9);
+      texte = `${q * b} ÷ ${b}`; valeur = q;
+    } else if (t === 'sub') {
+      const a = valeurVoulue + alea(1, Math.max(2, Math.round(p.mix * .3)));
+      texte = `${a} − ${a - valeurVoulue}`; valeur = valeurVoulue;
+    } else {
+      const b = alea(1, Math.max(1, valeurVoulue - 1));
+      texte = `${valeurVoulue - b} + ${b}`; valeur = valeurVoulue;
+    }
+    return { texte, valeur };
+  };
+  const bon = faireExpr(cible);
+  bon.texte = bon.texte; // tombe pile sur la cible
+  const mauvaises = new Set();
+  let garde = 0;
+  while (mauvaises.size < 3 && garde++ < 60) {
+    const e = faireExpr(cible + choix([-12, -10, -5, -3, -2, -1, 1, 2, 3, 5, 10, 12]));
+    if (e.valeur !== cible && ![...mauvaises].some(x => x.texte === e.texte)) mauvaises.add(e);
+  }
+  const liste = melange([bon, ...mauvaises]);
+  return {
+    consigne: 'Quelle opération fait EXACTEMENT le nombre ?',
+    visuel: `<div class="comptebon-cible">🎯 ${cible}</div>`,
+    options: liste.map(e => e.texte),
+    answer: liste.findIndex(e => e.texte === bon.texte),
+    op: 'autre'
+  };
+}
+
 /* ---------- Boss de l'aventure (3 combats différents) ---------- */
 function genereBossAventure(n) {
   const p = profilAge();
