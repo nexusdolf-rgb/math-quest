@@ -28,6 +28,7 @@ function aller(ecran) {
     classement: ecranClassement,
     profil: ecranProfil,
     reglages: ecranReglages,
+    parents: ecranParents,
     diplome: ecranDiplome,
     multijoueur: ecranMultijoueur
   };
@@ -56,6 +57,7 @@ function refaireDernier() {
   if (der.type === 'niveau') return lancerNiveau(der.id);
   if (der.type === 'table') return lancerTable(der.n);
   if (der.type === 'defi') return lancerDefiJour();
+  if (der.type === 'prof') return lancerProf();
   if (der.type === 'boss') return lancerBoss();
   if (der.type === 'boss-aventure') return lancerBossAventure(der.boss, JEU.aventureId);
   if (der.type === 'fete') return relancerFete();
@@ -124,6 +126,8 @@ document.addEventListener('click', e => {
       break;
 
     /* Défis */
+    case 'prof-lancer': lancerProf(); break;
+    case 'prof-continuer': profContinuer(); break;
     case 'defi-jour': lancerDefiJour(); break;
     case 'lancer-boss': lancerBoss(); break;
 

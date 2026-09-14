@@ -17,10 +17,55 @@ function optionsNombre(bonne, decalages) {
 }
 
 /* Construit 4 options texte et recalcule l'index de la bonne réponse */
-function pack(bonne, optionsValeurs, visuel, consigne, op) {
+function pack(bonne, optionsValeurs, visuel, consigne, op, skill) {
   const options = optionsValeurs.map(String);
-  return { consigne, visuel, options, answer: options.indexOf(String(bonne)), op };
+  return { consigne, visuel, options, answer: options.indexOf(String(bonne)), op, skill: skill || null };
 }
+/* Petite explication pédagogique affichée par le Prof après une erreur */
+function explicationCalcul(a, b, symbole) {
+  if (symbole === '+') {
+    const r = a + b, d = 10 - (a % 10);
+    if (a >= 10 && b > d && a % 10 !== 0) {
+      return `Astuce de la dizaine : ${a} + ${d} = ${a + d}, puis il reste ${b - d}, donc ${a} + ${b} = ${r}. 👍`;
+    }
+    return `Compte de ${b > 1 ? b + ' en ' + b : '1 en 1'} à partir de ${a} : tu arrives à ${r}.`;
+  }
+  if (symbole === '−') {
+    const r = a - b;
+    const uniteB = b % 10, uniteA = a % 10;
+    if (a >= 15 && uniteB > uniteA) {
+      const palier = a - uniteA;
+      return `${a} − ${b} : descends d'abord à ${palier} (${a} − ${uniteA}), puis retire encore ${b - uniteA} → ${r}.`;
+    }
+    return `Compte à rebours de ${b} pas depuis ${a}, ou dessine ${a} points et barre-en ${b} : il en reste ${r}.`;
+  }
+  if (symbole === '×') {
+    const r = a * b;
+    if (b > 5) { const x = b - 5; return `Décompose avec la table de 5 : ${a} × ${b} = ${a} × 5 + ${a} × ${x} = ${a * 5} + ${a * x} = ${r}.`; }
+    if (b === 5) return `${a} × 5, c'est compter de 5 en 5, ${a} fois : ${r}. La table de 5 finit toujours par 0 ou 5 !`;
+    if (b === 2) return `${a} × 2, c'est le double de ${a} : ${r}.`;
+    return `${a} × ${b}, c'est ${a} ajouté ${b} fois : ${Array.from({ length: b }, () => a).join(' + ')} = ${r}.`;
+  }
+  if (symbole === '÷') {
+    const q = a / b;
+    return `${a} ÷ ${b}, c'est demander « combien de fois ${b} dans ${a} ? ». Comme ${b} × ${q} = ${a}, la réponse est ${q}.`;
+  }
+  return '';
+}
+/* Construit une question de calcul nue (réutilisée par le Prof intelligent) */
+function questionCalculee(a, b, symbole, op, skill) {
+  const bonne = symbole === '+' ? a + b : symbole === '−' ? a - b
+    : symbole === '×' ? a * b : a / b;
+  const distracteurs = [1, -1, 2, -2, 10, -10, symbole === '×' || symbole === '÷' ? b : 0,
+    symbole === '×' ? -b : b, symbole === '÷' ? b : -bonne];
+  const q = pack(bonne, optionsNombre(bonne, distracteurs),
+    `<div class="q-calcul">${a} ${symbole} ${b} = ?</div>`, 'Combien ça fait ?', op, skill);
+  q.exp = explicationCalcul(a, b, symbole);
+  return q;
+}
+/* Étiquettes de compétence du Prof intelligent */
+function skillAddition(r) { return r <= 10 ? 'add-10' : r <= 20 ? 'add-20' : r <= 100 ? 'add-100' : 'add-grand'; }
+function skillSoustraction(r) { return r <= 10 ? 'sub-10' : r <= 20 ? 'sub-20' : r <= 100 ? 'sub-100' : 'sub-grand'; }
 
 /* Niveau de difficulté selon l'âge (jusqu'aux adultes) */
 function profilAge() {
@@ -63,7 +108,12 @@ function genereCalcul(operation, min = 1, max = 20, facteur = null, tranche = nu
   const distracteurs = [1, -1, 2, -2, 10, -10, symbole === '×' || symbole === '÷' ? b : 0,
                         symbole === '×' ? -b : b, symbole === '÷' ? b : -bonne];
   const options = optionsNombre(bonne, distracteurs);
-  return pack(bonne, options, `<div class="q-calcul">${a} ${symbole} ${b} = ?</div>`, 'Combien ça fait ?', op);
+  let skill = null;
+  if (op === 'add') skill = skillAddition(bonne);
+  else if (op === 'sub') skill = skillSoustraction(bonne);
+  else if (op === 'mul') skill = [a, b].filter(x => x >= 2 && x <= 12).map(x => 'mul-' + x);
+  else if (op === 'div') skill = 'div-' + b;
+  return pack(bonne, options, `<div class="q-calcul">${a} ${symbole} ${b} = ?</div>`, 'Combien ça fait ?', op, skill);
 }
 
 /* Petite expression pour les jeux d'arcade / comparaisons : { texte, valeur, op } */

@@ -113,6 +113,13 @@ function ecranAccueil() {
       <span class="dj-fleche">➜</span>
     </button>
 
+    <button class="defi-jour carte-prof" data-act="prof-lancer">
+      <span data-emoji>🧠</span>
+      <span><div class="dj-titre">Prof intelligent</div>
+      <div class="dj-sous">${Prof.accroche()}</div></span>
+      <span class="dj-fleche">➜</span>
+    </button>
+
     <button class="defi-jour ${defiFait ? 'fait' : ''}" data-act="defi-jour">
       <span data-emoji>${defiFait ? '✅' : '🎯'}</span>
       <span><div class="dj-titre">${defiFait ? 'Défi réussi !' : 'Défi du Jour'}</div>
@@ -437,6 +444,7 @@ function ecranReglages() {
         <button class="btn btn-bleu" style="padding:8px 14px" data-act="nav" data-ecran="boutique">Changer</button>
       </div>
       <div class="plusieurs-boutons mt">
+        <button class="btn btn-grand btn-bleu" data-act="nav" data-ecran="parents">👨‍👩‍👧 Espace parents (bilan)</button>
         <button class="btn btn-grand btn-rouge" data-act="profil-reset">🔄 Changer de joueur (tout recommencer)</button>
       </div>
       <p class="petit-texte mt">Math Quest ${VERSION_JEU} — jeu éducatif jouable hors-ligne (sauf le mode « avec un ami à distance »), sans publicité et sans collecte de données.</p>
@@ -493,9 +501,11 @@ function ecranResultats(r) {
         const m = MISSIONS_JOUR.find(x => x.id === id);
         return m ? `<div class="mission-terminee">${m.icone} Mission « ${m.lib} » terminée ! +${m.recomp.pieces} 🪙</div>` : '';
       }).join('') : ''}
+      ${r.conseil ? `<div class="conseil-prof mt">${r.conseil}</div>` : ''}
       <div class="plusieurs-boutons mt">
         ${r.prochainNiveau ? `<button class="btn btn-grand btn-vert" data-act="lancer-niveau" data-id="${r.prochainNiveau}">Niveau suivant ➜</button>` : ''}
         ${(r.carte || (JEU && JEU.aventureId)) ? '<button class="btn btn-grand btn-principal" data-act="nav" data-ecran="aventure">🗺️ Retour sur la carte</button>' : ''}
+        ${r.prof ? '<button class="btn btn-grand btn-principal" data-act="prof-lancer">🧠 Nouvelle série du Prof</button>' : ''}
         ${r.defi ? '' : '<button class="btn btn-grand" data-act="refaire">🔄 Rejouer</button>'}
         <button class="btn btn-grand" data-act="nav" data-ecran="accueil">🏠 Accueil</button>
       </div>

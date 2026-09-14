@@ -87,6 +87,7 @@ function moteurQuiz(cfg) {
     idx: 0, justes: 0, serie: 0, serieMax: 0,
     verrouille: false, tempsRestant: cfg.temps || null,
     timerQuestion: null, enPause: false, premierRendu: true,
+    totalBase: cfg.questions.length,
     opStats: { add: 0, sub: 0, mul: 0, div: 0, autre: 0 }
   };
   rendreQuiz();
@@ -95,24 +96,28 @@ function moteurQuiz(cfg) {
 function rendreQuiz() {
   const g = JEU.quiz;
   const q = g.questions[g.idx];
-  const total = g.questions.length;
+  // La numérotation et les points suivent les questions d'origine ; les
+  // questions de rappel du Prof (q._rappel) ne rallongent pas la série.
+  const total = g.totalBase || g.questions.length;
+  const questionsBase = g.questions.filter(x => !x._rappel);
+  const numAffiche = Math.min(total, 1 + g.questions.slice(0, g.idx).filter(x => !x._rappel).length);
   const cols = q.options.length === 3 ? 'grid-template-columns:1fr 1fr 1fr' : '';
   const comparer = q.options.some(o => String(o).includes('plus grand'));
   const points = total <= 15
-    ? `<div class="points-progression">${g.questions.map((_, i) =>
-        `<span class="point-prog ${i < g.idx ? (g.questions[i]._rate ? 'rate' : 'fait') : i === g.idx ? 'courant' : ''}"></span>`).join('')}</div>`
+    ? `<div class="points-progression">${questionsBase.map((qq, i) =>
+        `<span class="point-prog ${i < numAffiche - 1 ? (qq._rate ? 'rate' : 'fait') : i === numAffiche - 1 ? 'courant' : ''}"></span>`).join('')}</div>`
     : '';
   afficher(`
     <div class="quiz-haut">
       <button class="btn btn-retour" data-act="nav" data-ecran="accueil">🏠</button>
       <div class="qh-titre">
         <div class="qh-nom">${g.cfg.titre}</div>
-        <div class="qh-avancee">Question ${g.idx + 1} / ${total} ${g.serie >= 3 ? `• 🔥 ${g.serie}` : ''}</div>
+        <div class="qh-avancee">${q._rappel ? '🔁 On réessaie' : `Question ${numAffiche} / ${total}`} ${g.serie >= 3 ? `• 🔥 ${g.serie}` : ''}</div>
       </div>
       <button class="btn btn-retour" data-act="quiz-pause" title="Pause">⏸️</button>
       <div class="qh-score">🪙 ${g.justes}</div>
     </div>
-    <div class="barre-progres"><div style="width:${g.idx / total * 100}%"></div></div>
+    <div class="barre-progres"><div style="width:${(numAffiche - 1) / total * 100}%"></div></div>
     ${points}
     ${g.cfg.temps && !g.enPause ? `<div class="barre-temps"><div id="barre-tps" style="width:100%"></div></div>` : ''}
     ${g.cfg.monstre && !g.enPause ? `<div class="boss-arene">
@@ -180,12 +185,17 @@ function traiterReponse(i) {
   clearInterval(g.timerQuestion);
   boutons[q.answer].classList.add('bonne');
   const bon = i === q.answer;
+  if (typeof Prof !== 'undefined') Prof.enregistrer(q.skill || null, bon);
   if (bon) {
-    g.justes++; g.serie++; g.serieMax = Math.max(g.serieMax, g.serie);
-    g.opStats[q.op || 'autre'] = (g.opStats[q.op || 'autre'] || 0) + 1;
+    // Une question de rappel du Prof valide la compréhension mais ne compte
+    // pas dans le score de la série (la question d'origine, elle, était ratée).
+    if (!q._rappel) {
+      g.justes++; g.opStats[q.op || 'autre'] = (g.opStats[q.op || 'autre'] || 0) + 1;
+    }
+    g.serie++; g.serieMax = Math.max(g.serieMax, g.serie);
     sfx('bonne', g.serie);
-    const piece = g.serie >= 5 ? 2 : 1;
-    if (boutons[i]) flottantSurElement(boutons[i], `+${piece} 🪙`, '#b45309');
+    const piece = (q._rappel ? 0 : (g.serie >= 5 ? 2 : 1));
+    if (piece && boutons[i]) flottantSurElement(boutons[i], `+${piece} 🪙`, '#b45309');
     explosion(boutons[q.answer].getBoundingClientRect().left + 60, boutons[q.answer].getBoundingClientRect().top + 20, 10);
     const msg = g.serie >= 5 ? `Combo ×${Math.min(5, 1 + Math.floor(g.serie / 5))} ! 🔥`
       : choix(['Correct !', 'Super !', 'Génial !', 'Bravo ! 👏', 'Ouais ! 🎉']);
@@ -201,11 +211,35 @@ function traiterReponse(i) {
     afficherFeedback(i < 0 ? '⏰ Temps écoulé !' : '❌ Faux !', false);
     AudioMX.voix('faute');
   }
-  apres(() => {
-    g.idx++;
-    if (g.idx >= g.questions.length) finirQuiz();
-    else rendreQuiz();
-  }, 850);
+  // Session du Prof : après une erreur (pas un temps écoulé), on explique puis
+  // on repose la même question une fois pour vérifier que c'est compris.
+  if (g.cfg.prof && !bon && i >= 0 && q.exp && !q._rappel) {
+    g.questions.splice(g.idx + 1, 0, { ...q, _rappel: true });
+    apres(() => modaleExplicationProf(q), 950);
+    return;
+  }
+  apres(avancerQuiz, 850);
+}
+function avancerQuiz() {
+  const g = JEU.quiz;
+  if (!g) return;
+  g.idx++;
+  if (g.idx >= g.questions.length) finirQuiz();
+  else rendreQuiz();
+}
+function modaleExplicationProf(q) {
+  const bonneValeur = q.options[q.answer];
+  modale(`
+    <div class="m-emoji">💡</div>
+    <h3>Le Prof t'explique</h3>
+    <div class="explication-calcul">${q.visuel.replace('= ?', '= <b>' + bonneValeur + '</b>')}</div>
+    <p class="petit-texte explication-texte">${q.exp}</p>
+    <button class="btn btn-grand btn-principal" data-act="prof-continuer">J'ai compris 👍</button>
+    <p class="petit-texte mt">On repose la même question pour être sûr !</p>`);
+}
+function profContinuer() {
+  fermerModale();
+  avancerQuiz();
 }
 
 function finirQuiz() {
@@ -214,7 +248,8 @@ function finirQuiz() {
   // Mode multijoueur : déléguer
   if (cfg.apresFin) { cfg.apresFin({ justes: g.justes, total: g.questions.length }); return; }
 
-  const total = g.questions.length;
+  // Pour le Prof, les rappels ne comptent pas : le total reste les 10 questions d'origine
+  const total = cfg.prof ? (g.totalBase || g.questions.length) : g.questions.length;
   const ratio = g.justes / total;
   const parfait = g.justes === total;
   const etoiles = ratio >= .999 ? 3 : ratio >= .7 ? 2 : ratio >= .5 ? 1 : 0;
@@ -245,9 +280,10 @@ function finirQuiz() {
 
   ecranResultats({
     emoji, titre, justes: g.justes, total, serie: g.serieMax,
-    etoiles, pieces: gain.pieces, xp: gain.xp,
+    etoiles: cfg.prof ? null : etoiles, pieces: gain.pieces, xp: gain.xp,
     badges: gain.badges, missions: gain.missionsTerminees,
     prochainNiveau, defi: !!cfg.defi, boss: !!cfg.boss,
-    carte: !!cfg.aventureId
+    carte: !!cfg.aventureId,
+    prof: !!cfg.prof, conseil: cfg.prof ? Prof.conseil() : null
   });
 }

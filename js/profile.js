@@ -24,6 +24,7 @@ function profilVide() {
     missions: null,              // { date, list:[ids], fait:[ids] }
     jour: null,                  // compteurs du jour
     aventure: { noeuds: {}, coffres: [] }, // v3.0 : carte des mondes
+    competences: {},           // v3.3 : carnet du Prof intelligent
     stats: {
       parties: 0, justes: 0, total: 0, serieMax: 0,
       ops: { add: 0, sub: 0, mul: 0, div: 0, autre: 0 }
@@ -267,7 +268,7 @@ function finSession(opts) {
       joueur.stats.ops[cle] += n;
     }
   }
-  if (opts.mode && !joueur.jeuxJoues.includes(opts.mode) && opts.mode !== 'calcul') {
+  if (opts.mode && !['calcul', 'prof'].includes(opts.mode) && !joueur.jeuxJoues.includes(opts.mode)) {
     joueur.jeuxJoues.push(opts.mode);
   }
   if (opts.niveauId !== undefined && opts.etoiles !== null && opts.etoiles !== undefined) {

@@ -1,5 +1,5 @@
 /* Math Quest — Service Worker (hors-ligne) */
-const VERSION = 'math-quest-v9-';
+const VERSION = 'math-quest-v10-';
 const FICHIERS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const FICHIERS = [
   './js/aventure.js',
   './js/multi.js',
   './js/plus.js',
+  './js/prof.js',
   './js/screens.js',
   './js/app.js',
   './manifest.json',

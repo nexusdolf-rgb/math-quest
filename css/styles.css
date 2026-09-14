@@ -184,6 +184,7 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 .defi-jour .dj-fleche { margin-left: auto; font-size: 1.5rem; }
 .defi-jour.fait { background: linear-gradient(120deg, #34d399, #22c55e); animation: none; }
 .carte-boss { background: linear-gradient(120deg, #312e81, #7c3aed 60%, #ec4899); }
+.carte-prof { background: linear-gradient(120deg, #0d9488, #14b8a6 55%, #22d3ee); }
 .continuer { background: linear-gradient(120deg, #16a34a, #22c55e); }
 
 /* ---------- Grille des jeux ---------- */
@@ -992,3 +993,38 @@ body {
   background: #fef3c7; border: 2px dashed #f59e0b; color: #92400e;
   font-weight: 600; font-size: .95rem; text-align: center;
 }
+
+/* v3.3 — Conseil du Prof intelligent sur l'écran de résultats */
+.conseil-prof {
+  background: #ecfeff; border: 2px solid #67e8f9; border-radius: 16px;
+  padding: 12px 16px; font-weight: 600; color: #155e75; text-align: center;
+}
+
+/* v3.3 — Explication du Prof après une erreur */
+.explication-calcul {
+  font-size: 1.7rem; font-weight: 800; color: var(--violet-fonce, #4c1d95);
+  background: #f5f3ff; border-radius: 14px; padding: 12px 16px; margin: 8px 0;
+}
+.explication-texte { font-size: 1.02rem; line-height: 1.45; color: #334155; }
+
+/* v3.3 — Espace parents */
+.bilan-domaine { margin: 10px 0; }
+.bd-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.bd-tete b { font-size: .98rem; }
+.bd-tete span { font-size: .78rem; color: #64748b; }
+.jauge { position: relative; height: 18px; border-radius: 99px; background: #e2e8f0; overflow: hidden; }
+.jauge-fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; transition: width .5s ease; }
+.jauge-txt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 10px; font-size: .74rem; font-weight: 800; color: #1e293b; }
+.semaine-graphe { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px;
+  height: 130px; padding: 8px 4px 0; }
+.jour-barre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+.jb-colle { width: 100%; height: 100px; display: flex; align-items: flex-end; justify-content: center; }
+.jb-boite { width: 100%; max-width: 26px; min-height: 2px; background: #cbd5e1;
+  border-radius: 8px 8px 0 0; overflow: hidden; display: flex; align-items: flex-end; }
+.jb-justes { width: 100%; background: linear-gradient(180deg,#2dd4bf,#0d9488); }
+.jb-jour { font-size: .72rem; font-weight: 700; color: #475569; text-transform: capitalize; }
+.jb-n { font-size: .68rem; color: #94a3b8; min-height: .8rem; }
+.bilan-ligne { margin: 10px 0; }
+.bl-lib { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: .92rem; margin-bottom: 3px; }
+.bl-niv { font-size: .76rem; font-weight: 800; white-space: nowrap; }
