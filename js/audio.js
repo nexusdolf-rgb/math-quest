@@ -10,10 +10,11 @@ const AudioMX = {
   /* Migration d'anciennes préférences (son/musique) vers les 3 réglages */
   prefs: (() => {
     const anciennes = stockage.get('mq_prefs', null);
-    if (anciennes && 'effets' in anciennes) return anciennes;
+    if (anciennes && 'effets' in anciennes) return { voixType: 'fille', ...anciennes };
     return {
       effets: anciennes ? anciennes.son !== false : true,
       voix: true,
+      voixType: 'fille',
       musique: anciennes ? anciennes.musique !== false : true
     };
   })(),
@@ -22,6 +23,9 @@ const AudioMX = {
   tempo: 108,
   derniereVoix: 0,
   voixFR: null,
+  voixFilles: null,
+  voixGarcons: null,
+  _paroleJeton: 0,
 
   _sauver() { stockage.set('mq_prefs', this.prefs); },
   _assurer() {
@@ -40,6 +44,15 @@ const AudioMX = {
       window.speechSynthesis.onvoiceschanged = () => this._choisirVoix();
     }
     if (this.prefs.musique) this.demarrerMusique();
+    this._maintenirVoix();
+  },
+  /* iOS coupe la parole au bout de quelques secondes : un petit resume()
+     régulier empêche la synthèse vocale de se figer. */
+  _maintenirVoix() {
+    if (this._keepAlive || !('speechSynthesis' in window)) return;
+    this._keepAlive = setInterval(() => {
+      if (this.prefs.voix) { try { window.speechSynthesis.resume(); } catch {} }
+    }, 6000);
   },
 
   /* ---------- Réglages ---------- */
@@ -162,22 +175,68 @@ const AudioMX = {
   },
   _choisirVoix() {
     if (!('speechSynthesis' in window)) return;
-    const voix = window.speechSynthesis.getVoices();
-    this.voixFR = voix.find(v => /fr[-_]FR/i.test(v.lang)) ||
-                 voix.find(v => /^fr/i.test(v.lang)) || null;
+    const toutes = window.speechSynthesis.getVoices();
+    const fr = toutes.filter(v => /^fr/i.test(v.lang));
+    const nom = v => (v.name || '').toLowerCase();
+    // Noms de voix françaises les plus souvent rencontrés (Android/iOS/Chrome)
+    const FEMININS = ['enfant','child','kid','girl','fille','amélie','amelie','audrey','caroline',
+      'denise','marie','virginie','céline','celine','julie','marine','manon','camille','chloé','chloe',
+      'léa','lea','eloise','éloïse','anna','hana','google français','femme','female','woman','samantha','amandine','juliette'];
+    const MASCULINS = ['thomas','henri','paul','mathieu','nicolas','julien','antoine','rémi','remi',
+      'gaël','gael','sylvain','homme','male','boy','garcon','garçon','maxime','gabriel','louis','arthur'];
+    const enfant = fr.find(v => /enfant|child|kid/i.test(nom(v)));
+    this.voixFilles = enfant || fr.find(v => FEMININS.some(m => nom(v).includes(m)));
+    this.voixGarcons = fr.find(v => MASCULINS.some(m => nom(v).includes(m)));
+    this.voixFR = fr.find(v => /fr[-_]fr/i.test(v.lang)) || fr[0] || null;
+  },
+  setVoixType(t) {
+    this.prefs.voixType = t === 'garcon' ? 'garcon' : 'fille';
+    this._sauver();
+    this.derniereVoix = 0;
+    if (this.prefs.voix) this.parler(t === 'garcon' ? 'Salut, on joue ensemble !' : 'Coucou, on joue ensemble !');
   },
   parler(texte) {
     if (!this.prefs.voix || !('speechSynthesis' in window)) return;
     try {
+      const ss = window.speechSynthesis;
+      this._choisirVoix(); // certaines plateformes chargent les voix très tard
+      const genre = this.prefs.voixType === 'garcon' ? 'garcon' : 'fille';
       const u = new SpeechSynthesisUtterance(texte);
       u.lang = 'fr-FR';
-      if (this.voixFR) u.voice = this.voixFR;
-      u.pitch = 1.55;   // voix haute/aiguë → effet "enfant"
-      u.rate = 1.06;
+      const choisie = genre === 'garcon'
+        ? (this.voixGarcons || this.voixFilles || this.voixFR)
+        : (this.voixFilles || this.voixGarcons || this.voixFR);
+      if (choisie) u.voice = choisie;
+      // Si la voix choisie est DÉJÀ une voix d'enfant, on la garde presque
+      // naturelle ; sinon on remonte légèrement la hauteur pour la rajeunir,
+      // avec une petite variation à chaque phrase (rendu vivant, pas robotique).
+      const dejaEnfant = choisie && /enfant|child|kid/i.test(choisie.name || '');
+      if (dejaEnfant) {
+        u.pitch = genre === 'garcon' ? 1.02 + alea(-1, 2) / 40 : 1.06 + alea(-1, 2) / 40;
+      } else if (genre === 'garcon') {
+        u.pitch = 1.22 + alea(-1, 3) / 40;   // ~1.19–1.30
+      } else {
+        u.pitch = 1.42 + alea(-2, 3) / 40;   // ~1.37–1.50
+      }
+      u.rate = 1.0 + alea(-2, 2) / 120;      // ~0.98–1.02
       u.volume = 1;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
+      // Anti-bug Chrome/Android : un cancel() immédiatement suivi de speak()
+      // fait parfois avaler la phrase → on décale de 60 ms et on annule
+      // l'envoi si une phrase plus récente a pris la place.
+      const jeton = ++this._paroleJeton;
+      ss.cancel();
+      setTimeout(() => {
+        if (jeton !== this._paroleJeton) return;
+        try { ss.resume(); ss.speak(u); } catch {}
+      }, 60);
     } catch {}
+  },
+  testerVoix() {
+    this.derniereVoix = 0;
+    const genre = this.prefs.voixType === 'garcon' ? 'garcon' : 'fille';
+    this.parler(genre === 'garcon'
+      ? choix(['Bravo, continue comme ça !', 'Super, tu es trop fort !'])
+      : choix(['Bravo, tu déchires !', 'Victoire ! Tu es la meilleure !']));
   },
   voix(categorie, force = false) {
     if (!this.prefs.voix) return;

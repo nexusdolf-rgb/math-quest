@@ -3,6 +3,21 @@
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* ---------- Tactile mobile (anti bugs de tap/zoom/sélection) ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overscroll-behavior: none; }
+.app, .carte, nav, header, .grille-coloriage, .grille-sudoku, .plateau-taupe {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+input, select, textarea { -webkit-user-select: text; user-select: text; }
+button, [data-act], .cellule, .cell-sud, .trou, .carte-memory, .tuile-nombre,
+.peinture, .modele-btn, .age-btn, .interrupteur, .avatar-btn, .table-btn,
+.niveau-btn, .carte-jeu, .reponse, .billet, .piece-monnaie {
+  touch-action: manipulation;
+}
+/* Empêche le contour de focus clavier qui reste après un tap au doigt */
+button:focus:not(:focus-visible) { outline: none; }
+
 :root {
   --violet: #8b5cf6;
   --violet-fonce: #7c3aed;
@@ -607,3 +622,10 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 /* ---- Navigation à 6 onglets ---- */
 .nav-bas button { font-size: .62rem; }
 .nav-bas button .nb-icone { font-size: 1.2rem; }
+
+/* ---------- v3.0.1 : choix de la voix & retour tactile immédiat ---------- */
+.choix-voix { display: inline-flex; gap: 7px; }
+.choix-voix .btn { font-size: .9rem; font-weight: 600; min-height: 40px; }
+.cell-sud:active, .cellule:active, .trou:active { transform: scale(.92); }
+.cell-sud, .cellule, .trou { transition: transform .07s, background .15s; }
+.cell-sud.fausse { background: #fecaca !important; animation: secoue .4s; }

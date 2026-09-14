@@ -34,7 +34,8 @@ function lancerQuizMode(mode) {
     titre: `${meta.emoji} ${meta.nom}`,
     questions: genereQuestionsMode(mode).slice(0, nb),
     temps: mode === 'compte' ? 8 : null,
-    mode
+    mode,
+    aventureId: JEU.aventureId || null
   });
 }
 function lancerDefiJour() {
@@ -85,7 +86,7 @@ function moteurQuiz(cfg) {
     questions: cfg.questions,
     idx: 0, justes: 0, serie: 0, serieMax: 0,
     verrouille: false, tempsRestant: cfg.temps || null,
-    timerQuestion: null, enPause: false,
+    timerQuestion: null, enPause: false, premierRendu: true,
     opStats: { add: 0, sub: 0, mul: 0, div: 0, autre: 0 }
   };
   rendreQuiz();
@@ -127,7 +128,8 @@ function rendreQuiz() {
     <div class="reponses ${comparer ? 'comparaison-rep' : ''}" style="${cols}">
       ${q.options.map((o, i) =>
         `<button class="reponse" data-act="repondre" data-i="${i}">${o}</button>`).join('')}
-    </div>`);
+    </div>`, !g.premierRendu);
+  g.premierRendu = false;
   if (!g.enPause) lancerQuestion();
 }
 
@@ -169,11 +171,13 @@ function reprendreQuiz() {
 
 function traiterReponse(i) {
   const g = JEU.quiz;
-  if (g.verrouille || g.enPause) return;
-  g.verrouille = true;
-  clearInterval(g.timerQuestion);
+  if (!g || g.verrouille || g.enPause) return;
   const q = g.questions[g.idx];
   const boutons = $$('.reponse');
+  // L'écran a changé pendant le chrono (minuterie résiduelle) : on annule
+  if (!q || !boutons[q.answer]) { clearInterval(g.timerQuestion); return; }
+  g.verrouille = true;
+  clearInterval(g.timerQuestion);
   boutons[q.answer].classList.add('bonne');
   const bon = i === q.answer;
   if (bon) {

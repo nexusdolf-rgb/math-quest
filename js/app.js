@@ -34,6 +34,13 @@ function aller(ecran) {
 }
 
 function ouvrirMode(mode) {
+  // On coupe les minuteurs/animations du jeu précédent avant d'ouvrir le suivant,
+  // tout en conservant l'éventuel rattachement à la carte Aventure.
+  const aventureId = JEU.aventureId || null;
+  toutArreter();
+  JEU = {};
+  fermerModale();
+  if (aventureId) JEU.aventureId = aventureId;
   if (mode === 'calcul') return aller('niveaux');
   if (mode === 'tables') return aller('tables');
   if (mode === 'duel') return ecranDuel(2);
@@ -97,6 +104,12 @@ document.addEventListener('click', e => {
       AudioMX.setVoix(!AudioMX.prefs.voix);
       ecranReglages();
       break;
+    case 'voix-fille':
+      AudioMX.setVoixType('fille'); ecranReglages(); break;
+    case 'voix-garcon':
+      AudioMX.setVoixType('garcon'); ecranReglages(); break;
+    case 'voix-test':
+      AudioMX.testerVoix(); break;
     case 'reglage-musique':
       AudioMX.setMusique(!AudioMX.prefs.musique);
       ecranReglages();

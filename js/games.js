@@ -8,9 +8,9 @@
 function ecranDevinette() {
   const maxi = profilAge().dev;
   JEU.devinette = { secret: alea(1, maxi), maxi, essais: [], saisie: '', fini: false, dernierEtat: '', message: '' };
-  rendreDevinette();
+  rendreDevinette(false);
 }
-function rendreDevinette() {
+function rendreDevinette(rester = true) {
   const d = JEU.devinette;
   afficher(entetePage('🎯 Devinette', 'jeux') + `
     <div class="carte center">
@@ -23,11 +23,11 @@ function rendreDevinette() {
       <div class="indice-bulle ${d.dernierEtat}">${d.message || '&nbsp;'}</div>
       <div class="pave-numerique mt">
         ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="btn" data-act="dev-chiffre" data-n="${n}">${n}</button>`).join('')}
-        <button class="btn btn-rouge" data-act="dev-efface">⌫</button>
+        <button class="btn btn-rouge" data-act="dev-efface"><span style="font-size:1.5rem">←</span></button>
         <button class="btn" data-act="dev-chiffre" data-n="0">0</button>
         <button class="btn btn-vert" data-act="dev-valide">OK</button>
       </div>
-    </div>${navHTML('')}`);
+    </div>${navHTML('')}`, rester);
 }
 function devineAjout(ch) {
   const d = JEU.devinette;
@@ -75,9 +75,9 @@ function ecranOrdre() {
   const nombres = new Set();
   while (nombres.size < 5) nombres.add(alea(1, max));
   JEU.ordre = { cible: [...nombres].sort((a, b) => a - b), melanges: melange([...nombres]), pris: [], erreurs: 0, position: 0, erreurIndex: null };
-  rendreOrdre();
+  rendreOrdre(false);
 }
-function rendreOrdre() {
+function rendreOrdre(rester = true) {
   const o = JEU.ordre;
   const couleurs = ['#8b5cf6', '#ec4899', '#f97316', '#22c55e', '#3b82f6'];
   afficher(entetePage('📊 Ordre des Nombres', 'jeux') + `
@@ -93,7 +93,7 @@ function rendreOrdre() {
             style="background:${couleurs[o.cible.indexOf(n)]}" data-act="ordre-touche" data-i="${i}">${n}</button>`).join('')}
       </div>
       <p class="petit-texte mt">Erreurs : ${o.erreurs}</p>
-    </div>${navHTML('')}`);
+    </div>${navHTML('')}`, rester);
 }
 function ordreTouche(i) {
   const o = JEU.ordre;
@@ -154,9 +154,9 @@ function ecranMemory() {
     cartes.push({ paire: idx, texte: String(p.val) });
   });
   JEU.memory = { cartes: melange(cartes), retournees: [], trouvees: [], coups: 0, bloque: false };
-  rendreMemory();
+  rendreMemory(false);
 }
-function rendreMemory() {
+function rendreMemory(rester = true) {
   const m = JEU.memory;
   afficher(entetePage('🃏 Memory Math', 'jeux') + `
     <div class="carte">
@@ -171,7 +171,7 @@ function rendreMemory() {
             </span>
           </button>`).join('')}
       </div>
-    </div>${navHTML('')}`);
+    </div>${navHTML('')}`, rester);
 }
 function memoryTouche(i) {
   const m = JEU.memory;
@@ -218,8 +218,8 @@ function finirMemory(coups) {
 /* =================  COLORIAGE MAGIQUE  ================= */
 let coloriageActif = 0, peintureChoisie = '#f43f5e';
 const cellulesPeintes = {};
-function ecranColoriage() { rendreColoriage(); }
-function rendreColoriage() {
+function ecranColoriage() { rendreColoriage(false); }
+function rendreColoriage(rester = true) {
   const modele = COLORIAGES[coloriageActif];
   const lignes = modele.modele;
   afficher(entetePage('🎨 Coloriage Magique', 'jeux') + `
@@ -242,14 +242,28 @@ function rendreColoriage() {
         <button class="peinture ${peintureChoisie === 'GOMME' ? 'active' : ''}" style="background:repeating-linear-gradient(45deg,#fff 0 6px,#fca5a5 6px 10px)" data-act="color-efface">🧽</button>
       </div>
       <button class="btn btn-rouge btn-grand" data-act="color-reset">🗑️ Tout effacer</button>
-    </div>${navHTML('')}`);
+    </div>${navHTML('')}`, rester);
 }
 function peintCellule(cle) {
   if (peintureChoisie === 'GOMME') delete cellulesPeintes[cle];
   else cellulesPeintes[cle] = peintureChoisie;
   sfx('clic');
-  rendreColoriage();
+  // Mise à jour de la SEULE case touchée (aucun rechargement de l'écran,
+  // donc aucun saut/flash sur mobile)
+  const [, cy, cx] = cle.split('-').map(Number);
   const modele = COLORIAGES[coloriageActif];
+  const caseEl = document.querySelector(`.cellule[data-cle="${cle}"]`);
+  if (caseEl) {
+    if (peintureChoisie === 'GOMME') {
+      const aPeindre = modele.modele[cy][cx] !== '.';
+      caseEl.style.background = '#fff';
+      if (aPeindre) caseEl.style.boxShadow = 'inset 0 0 0 1px #ddd6fe';
+      else caseEl.style.boxShadow = '';
+    } else {
+      caseEl.style.background = peintureChoisie;
+      caseEl.style.boxShadow = 'inset 0 0 0 1px rgba(255,255,255,.4)';
+    }
+  }
   let attendues = 0, peintes = 0;
   modele.modele.forEach((ligne, y) => [...ligne].forEach((ch, x) => {
     if (ch !== '.') { attendues++; if (cellulesPeintes[`${coloriageActif}-${y}-${x}`]) peintes++; }
@@ -271,7 +285,7 @@ function ecranFusee() {
   JEU.fusee = { restant: 60, score: 0, fini: false, verrouille: false, question: null, opStats: {}, dernierTick: null };
   JEU.dernier = { type: 'mode', mode: 'fusee' };
   nouvelleQuestionFusee();
-  rendreFusee();
+  rendreFusee(false);
   JEU.fusee.chrono = toutesLes(() => {
     const f = JEU.fusee;
     f.restant -= .1;
@@ -292,7 +306,7 @@ function nouvelleQuestionFusee() {
   q.answer = q.options.indexOf(bonTexte);
   JEU.fusee.question = q;
 }
-function rendreFusee() {
+function rendreFusee(rester = true) {
   const f = JEU.fusee, q = f.question;
   afficher(`
     ${entetePage('🚀 Fusée', 'jeux')}
@@ -310,7 +324,7 @@ function rendreFusee() {
       <div class="reponses" style="grid-template-columns:repeat(3,1fr)">
         ${q.options.map((o, i) => `<button class="reponse" style="font-size:1.4rem;min-height:62px;padding:12px" data-act="fusee-rep" data-i="${i}">${o}</button>`).join('')}
       </div>
-    </div>`);
+    </div>`, rester);
 }
 function fuseeRepond(i) {
   const f = JEU.fusee;
@@ -361,7 +375,7 @@ function ecranTaupe() {
   JEU.taupe = { restant: 30, score: 0, serie: 0, cible: null, trous: Array(9).fill(null), fini: false, opStats: {}, voleeMs: p.taupeMs, dernierTick: null };
   JEU.dernier = { type: 'mode', mode: 'taupe' };
   nouvelleVoleeTaupe();
-  rendreTaupe();
+  rendreTaupe(false);
   // changement de volée automatique (plus rapide avec l'âge/niveau)
   JEU.taupe.voleeTimer = toutesLes(() => {
     const t = JEU.taupe;
@@ -395,7 +409,7 @@ function nouvelleVoleeTaupe() {
   });
   t.trous = trous;
 }
-function rendreTaupe() {
+function rendreTaupe(rester = true) {
   const t = JEU.taupe;
   afficher(`${entetePage('🔨 Tape-Taupe', 'jeux')}
     <div class="carte">
@@ -412,7 +426,7 @@ function rendreTaupe() {
           </button>`).join('')}
       </div>
       <p class="petit-texte mt">🔥 Série : ${t.serie}</p>
-    </div>`);
+    </div>`, rester);
 }
 function taupeTape(i) {
   const t = JEU.taupe;
@@ -570,7 +584,7 @@ function ecranPingPong() {
   };
   JEU.dernier = { type: 'mode', mode: 'pingpong' };
   nouvelleQuestionPing();
-  rendrePing();
+  rendrePing(false);
   JEU.ping.timer = toutesLes(() => {
     const p = JEU.ping;
     if (!p || p.fini || p.verrouille) return;
@@ -595,7 +609,7 @@ function nouvelleQuestionPing() {
   p.restant = p.delaiMs;
   p.dernierTick = null;
 }
-function rendrePing() {
+function rendrePing(rester = true) {
   const p = JEU.ping, q = p.question;
   afficher(`${entetePage('🏓 Ping-Pong Mental', 'jeux')}
     <div class="carte">
@@ -613,7 +627,7 @@ function rendrePing() {
         ${q.options.map((o, i) => `<button class="reponse" style="font-size:1.4rem;min-height:60px;padding:10px" data-act="ping-rep" data-i="${i}">${o}</button>`).join('')}
       </div>
       <p class="petit-texte mt">🔥 Série : ${p.serie} • plus tu gagnes, plus la balle va vite !</p>
-    </div>`);
+    </div>`, rester);
 }
 function pingRepond(i) {
   const p = JEU.ping;
@@ -706,54 +720,71 @@ function ecranSudoku() {
   const nbTrous = taille === 3 ? 4 : 9;
   const trous = melange(Array.from({ length: taille * taille }, (_, i) => i)).slice(0, nbTrous);
   trous.forEach(k => { grille[Math.floor(k / taille)][k % taille] = 0; });
-  JEU.sudoku = { taille, solution, grille, fixes: new Set(), selection: null, erreurs: 0, fini: false };
+  JEU.sudoku = { taille, solution, grille, fixes: new Set(), justes: new Set(), selection: null, erreurs: 0, fini: false };
   for (let k = 0; k < taille * taille; k++) if (!trous.includes(k)) JEU.sudoku.fixes.add(k);
   JEU.dernier = { type: 'mode', mode: 'sudoku' };
-  rendreSudoku();
+  rendreSudoku(false);
 }
-function rendreSudoku() {
+function rendreSudoku(rester = true) {
   const s = JEU.sudoku;
   const n = s.taille;
+  const bloc = n === 4 ? 2 : n;
   let cases = '';
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const k = r * n + c, v = s.grille[r][c];
-    const fixe = s.fixes.has(k);
-    const selectionne = s.selection === k;
-    const bord = `${c % (n === 4 ? 2 : n) === 0 ? 'border-left-width:3px;' : ''}${r % (n === 4 ? 2 : n) === 0 ? 'border-top-width:3px;' : ''}${c === n - 1 ? 'border-right-width:3px;' : ''}${r === n - 1 ? 'border-bottom-width:3px;' : ''}`;
-    cases += `<button class="cell-sud ${fixe ? 'fixe' : 'vide'} ${selectionne ? 'selection' : ''} ${s.erreurCase === k ? 'fausse' : ''}"
-      style="${bord}" data-act="sud-cell" data-k="${k}">${v || ''}</button>`;
+    const fixe = s.fixes.has(k), juste = s.justes.has(k);
+    const classeBase = fixe || juste ? 'fixe' : 'vide';
+    const bord = `${c % bloc === 0 ? 'border-left-width:3px;' : ''}${r % bloc === 0 ? 'border-top-width:3px;' : ''}${c === n - 1 ? 'border-right-width:3px;' : ''}${r === n - 1 ? 'border-bottom-width:3px;' : ''}`;
+    cases += `<button class="cell-sud ${classeBase}" style="${bord}" data-act="sud-cell" data-k="${k}">${v || ''}</button>`;
   }
   afficher(`${entetePage('🧩 Sudoku des Nombres', 'jeux')}
     <div class="carte">
       <p class="center mb">Chaque ligne et chaque colonne doit contenir <b>tous les nombres de 1 à ${n}</b> !</p>
       <div class="grille-sudoku" style="grid-template-columns:repeat(${n},1fr)">${cases}</div>
-      <p class="petit-texte center mt">Erreurs : <b>${s.erreurs}</b> • touche une case vide puis un nombre 👇</p>
+      <p class="petit-texte center mt">Erreurs : <b id="sud-erreurs">${s.erreurs}</b> • touche une case claire puis un nombre 👇</p>
       <div class="pave-numerique mt" style="max-width:340px;margin:0 auto">
         ${Array.from({ length: n }, (_, i) => `<button class="btn btn-principal" style="font-size:1.4rem" data-act="sud-chiffre" data-n="${i + 1}">${i + 1}</button>`).join('')}
-        <button class="btn btn-rouge" data-act="sud-efface">⌫</button>
+        <button class="btn btn-rouge" data-act="sud-efface"><span style="font-size:1.5rem">←</span></button>
       </div>
-    </div>${navHTML('')}`);
+    </div>${navHTML('')}`, rester);
 }
+/* Mise à jour UNIQUEMENT visuelle d'une case (pas de reconstruction d'écran) */
+function sudCaseEl(k) { return document.querySelector(`.cell-sud[data-k="${k}"]`); }
 function sudChoisit(k) {
   const s = JEU.sudoku;
-  if (!s || s.fini || s.fixes.has(k)) return;
-  s.selection = k; sfx('clic'); rendreSudoku();
+  if (!s || s.fini || s.fixes.has(k) || s.justes.has(k)) return;
+  // Déplace la surbrillance sans recharger la grille
+  document.querySelectorAll('.cell-sud.selection').forEach(e => e.classList.remove('selection'));
+  s.selection = k;
+  sfx('clic');
+  const el = sudCaseEl(k);
+  if (el) el.classList.add('selection');
 }
 function sudChiffre(n) {
   const s = JEU.sudoku;
-  if (!s || s.fini || s.selection === null) { dire('Touche d\'abord une case vide !'); return; }
+  if (!s || s.fini) return;
+  if (s.selection === null) { dire('Touche d\'abord une case claire !'); sfx('ferme'); return; }
   const k = s.selection, r = Math.floor(k / s.taille), c = k % s.taille;
+  const el = sudCaseEl(k);
   if (n === s.solution[r][c]) {
-    s.grille[r][c] = n;
-    s.selection = null;
-    sfx('bonne');
-    rendreSudoku();
-    if (s.grille.every((ligne, i) => ligne.every((v, j) => v === s.solution[i][j]))) finirSudoku();
+    s.grille[r][c] = n; s.justes.add(k); s.selection = null;
+    sfx('bonne'); AudioMX.voix('bonne');
+    if (el) {
+      el.textContent = n;
+      el.classList.remove('vide', 'selection');
+      el.classList.add('fixe');
+    }
+    if (s.grille.every((ligne, i) => ligne.every((v, j) => v === s.solution[i][j]))) {
+      apres(finirSudoku, 350);
+    }
   } else {
-    s.erreurs++; s.erreurCase = k;
+    s.erreurs++;
+    const compteur = $('#sud-erreurs'); if (compteur) compteur.textContent = s.erreurs;
     sfx('faute'); AudioMX.voix('faute');
-    rendreSudoku();
-    apres(() => { if (JEU.sudoku === s) { s.erreurCase = null; rendreSudoku(); } }, 450);
+    if (el) {
+      el.classList.add('fausse');
+      apres(() => el.classList.remove('fausse'), 450);
+    }
   }
 }
 function sudEfface() {
@@ -762,7 +793,8 @@ function sudEfface() {
   const k = s.selection;
   s.grille[Math.floor(k / s.taille)][k % s.taille] = 0;
   s.selection = null;
-  rendreSudoku();
+  const el = sudCaseEl(k);
+  if (el) { el.textContent = ''; el.classList.remove('selection'); }
 }
 function finirSudoku() {
   const s = JEU.sudoku;

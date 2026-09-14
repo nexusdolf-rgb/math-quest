@@ -417,6 +417,14 @@ function ecranReglages() {
         <button class="interrupteur ${AudioMX.prefs.voix ? 'on' : ''}" data-act="reglage-voix" aria-label="Voix"></button>
       </div>
       <div class="interrupteur-ligne">
+        <span>Voix de…</span>
+        <span class="choix-voix">
+          <button class="btn ${AudioMX.prefs.voixType !== 'garcon' ? 'btn-principal' : ''}" style="padding:8px 14px" data-act="voix-fille">👧 Fille</button>
+          <button class="btn ${AudioMX.prefs.voixType === 'garcon' ? 'btn-principal' : ''}" style="padding:8px 14px" data-act="voix-garcon">👦 Garçon</button>
+          <button class="btn btn-bleu" style="padding:8px 12px" data-act="voix-test" title="Essayer la voix">▶️</button>
+        </span>
+      </div>
+      <div class="interrupteur-ligne">
         <span>🎵 Musique de fond</span>
         <button class="interrupteur ${AudioMX.prefs.musique ? 'on' : ''}" data-act="reglage-musique" aria-label="Musique"></button>
       </div>

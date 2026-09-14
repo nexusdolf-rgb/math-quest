@@ -7,14 +7,18 @@
 
 const root = $('#root');
 
-/* Affiche un écran avec une petite animation d'entrée */
-function afficher(html) {
+/* Affiche un écran avec une petite animation d'entrée.
+   rester=true : simple mise à jour du jeu en cours (PAS d'animation,
+   PAS de remontée en haut de page) — indispensable pour les grilles
+   tactiles type Coloriage/Sudoku où l'on tape case après case. */
+function afficher(html, rester = false) {
   root.innerHTML = html;
-  // Relance l'animation CSS
-  root.style.animation = 'none';
-  void root.offsetWidth;
-  root.style.animation = '';
-  window.scrollTo(0, 0);
+  if (!rester) {
+    root.style.animation = 'none';
+    void root.offsetWidth;
+    root.style.animation = '';
+    window.scrollTo(0, 0);
+  }
 }
 
 /* ---------- Confettis (canvas) ---------- */
