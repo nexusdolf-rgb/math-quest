@@ -1,5 +1,5 @@
 /* Math Quest — Service Worker (hors-ligne) */
-const VERSION = 'math-quest-v8-';
+const VERSION = 'math-quest-v9-';
 const FICHIERS = [
   './',
   './index.html',
@@ -36,13 +36,26 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
+  // Ne pas intercepter les scripts injectés par la plateforme d'hébergement
+  // (badge Netlify…) : ils doivent simplement échouer proprement hors-ligne.
+  if (e.request.url.includes('/.netlify/')) return;
   e.respondWith(
-    caches.match(e.request).then(trouve =>
-      trouve || fetch(e.request).then(reponse => {
-        const copie = reponse.clone();
-        caches.open(VERSION + '1').then(c => c.put(e.request, copie)).catch(() => {});
+    caches.match(e.request).then(trouve => {
+      if (trouve) return trouve;
+      return fetch(e.request).then(reponse => {
+        // Ne mettre en cache que les vraies réponses succès : on évite ainsi
+        // qu'une page d'erreur HTML soit servie plus tard comme un .js.
+        if (reponse.ok && (reponse.type === 'basic' || reponse.type === 'cors')) {
+          const copie = reponse.clone();
+          caches.open(VERSION + '1').then(c => c.put(e.request, copie)).catch(() => {});
+        }
         return reponse;
-      }).catch(() => caches.match('./index.html'))
-    )
+      }).catch(() => {
+        // Hors-ligne et absent du cache : index.html pour les navigations,
+        // un échec propre et silencieux pour tout le reste (scripts, images…).
+        if (e.request.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
+      });
+    })
   );
 });
