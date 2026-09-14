@@ -6,14 +6,16 @@
 
 let JEU = {};
 
-function lancerNiveau(id) {
+function lancerNiveau(id, opts = {}) {
   const niveau = NIVEAUX.find(n => n.id === id);
   JEU.dernier = { type: 'niveau', id };
+  JEU.aventureId = opts.aventureId || null;
   moteurQuiz({
     titre: `${niveau.emoji} ${niveau.nom}`,
     questions: genereQuestionsNiveau(niveau),
     niveauId: id,
-    mode: 'calcul'
+    mode: 'calcul',
+    aventureId: opts.aventureId
   });
 }
 function lancerTable(n) {
@@ -60,6 +62,22 @@ function lancerBoss() {
     boss: true
   });
 }
+/* v3.0 : combats de boss de la carte Aventure */
+function lancerBossAventure(n, aventureId) {
+  const b = BOSS_AVENTURE[n - 1];
+  JEU.dernier = { type: 'boss-aventure', boss: n };
+  JEU.aventureId = aventureId;
+  sfx('boss');
+  moteurQuiz({
+    titre: `${b.emoji} ${b.nom}`,
+    questions: genereBossAventure(n),
+    bonusPieces: b.pieces,
+    mode: 'boss',
+    boss: true,
+    aventureId,
+    monstre: b
+  });
+}
 
 function moteurQuiz(cfg) {
   JEU.quiz = {
@@ -96,6 +114,11 @@ function rendreQuiz() {
     <div class="barre-progres"><div style="width:${g.idx / total * 100}%"></div></div>
     ${points}
     ${g.cfg.temps && !g.enPause ? `<div class="barre-temps"><div id="barre-tps" style="width:100%"></div></div>` : ''}
+    ${g.cfg.monstre && !g.enPause ? `<div class="boss-arene">
+        <div class="boss-monstre" id="boss-monstre">${g.cfg.monstre.emoji}</div>
+        <div class="boss-pv"><div id="boss-pv-barre" style="width:${100 - g.idx / total * 100}%"></div></div>
+        <div class="boss-nom">${g.cfg.monstre.nom} • vie ${total - g.idx}/${total}</div>
+      </div>` : ''}
     <div class="zone-question">
       ${g.serie >= 5 ? '<div class="combo-mult">COMBO ×2 🔥</div>' : ''}
       <div class="q-consigne">${q.consigne || ''}</div>
@@ -163,6 +186,8 @@ function traiterReponse(i) {
     const msg = g.serie >= 5 ? `Combo ×${Math.min(5, 1 + Math.floor(g.serie / 5))} ! 🔥`
       : choix(['Correct !', 'Super !', 'Génial !', 'Bravo ! 👏', 'Ouais ! 🎉']);
     afficherFeedback(msg, true);
+    const monstre = $('#boss-monstre');
+    if (monstre) { monstre.classList.add('touche'); setTimeout(() => monstre.classList.remove('touche'), 420); }
     if (g.serie === 5 || g.serie === 10 || g.serie === 15) AudioMX.voix('combo', true);
     else AudioMX.voix('bonne');
   } else {
@@ -195,6 +220,7 @@ function finirQuiz() {
   const gain = finSession({
     mode: cfg.mode || 'autre',
     niveauId: cfg.niveauId,
+    aventureId: cfg.aventureId,
     justes: g.justes, total, serie: g.serieMax,
     etoiles: cfg.niveauId !== undefined || cfg.mode ? etoiles : null,
     parfait,
@@ -217,6 +243,7 @@ function finirQuiz() {
     emoji, titre, justes: g.justes, total, serie: g.serieMax,
     etoiles, pieces: gain.pieces, xp: gain.xp,
     badges: gain.badges, missions: gain.missionsTerminees,
-    prochainNiveau, defi: !!cfg.defi, boss: !!cfg.boss
+    prochainNiveau, defi: !!cfg.defi, boss: !!cfg.boss,
+    carte: !!cfg.aventureId
   });
 }

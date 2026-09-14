@@ -5,10 +5,12 @@
 'use strict';
 
 const MODES_QUIZ = ['divisions', 'vrai-faux', 'manquant', 'comparaison', 'fractions',
-  'suite', 'compte', 'dizaines', 'horloge', 'monnaie', 'formes'];
+  'suite', 'compte', 'dizaines', 'horloge', 'monnaie', 'formes',
+  'suite-pro', 'equations'];
 const ECRANS_JEUX_SPECIAUX = {
   devinette: ecranDevinette, ordre: ecranOrdre, memory: ecranMemory,
-  coloriage: ecranColoriage, fusee: ecranFusee, taupe: ecranTaupe
+  coloriage: ecranColoriage, fusee: ecranFusee, taupe: ecranTaupe,
+  pingpong: ecranPingPong, sudoku: ecranSudoku
 };
 
 function aller(ecran) {
@@ -17,6 +19,7 @@ function aller(ecran) {
   fermerModale();
   const ecrans = {
     accueil: ecranAccueil,
+    aventure: ecranAventure,
     jeux: ecranJeux,
     niveaux: ecranNiveaux,
     tables: ecranTables,
@@ -45,6 +48,7 @@ function refaireDernier() {
   if (der.type === 'table') return lancerTable(der.n);
   if (der.type === 'defi') return lancerDefiJour();
   if (der.type === 'boss') return lancerBoss();
+  if (der.type === 'boss-aventure') return lancerBossAventure(der.boss, JEU.aventureId);
   if (der.type === 'fete') return relancerFete();
   if (der.type === 'mode') {
     if (ECRANS_JEUX_SPECIAUX[der.mode]) return ECRANS_JEUX_SPECIAUX[der.mode]();
@@ -108,6 +112,7 @@ document.addEventListener('click', e => {
 
     /* Jeux */
     case 'ouvrir-mode': ouvrirMode(d.mode); break;
+    case 'lancer-noeud': lancerNoeud(d.id); break;
     case 'lancer-niveau': lancerNiveau(parseInt(d.id, 10)); break;
     case 'lancer-table': lancerTable(parseInt(d.n, 10)); break;
     case 'niv-verrouille': dire('🔒 Termine le niveau précédent pour débloquer celui-ci !'); break;
@@ -140,6 +145,12 @@ document.addEventListener('click', e => {
     /* Arcade */
     case 'fusee-rep': fuseeRepond(parseInt(d.i, 10)); break;
     case 'taupe-tap': taupeTape(parseInt(d.i, 10)); break;
+    case 'ping-rep': pingRepond(parseInt(d.i, 10)); break;
+
+    /* Sudoku */
+    case 'sud-cell': sudChoisit(parseInt(d.k, 10)); break;
+    case 'sud-chiffre': sudChiffre(parseInt(d.n, 10)); break;
+    case 'sud-efface': sudEfface(); break;
 
     /* Multijoueur */
     case 'fete-nb': nbJoueursFete = parseInt(d.n, 10); rendreDuel(); break;
@@ -224,7 +235,8 @@ window.MQ = {
   get joueur() { return joueur; },
   get JEU() { return JEU; },
   aller, ouvrirMode, lancerNiveau, lancerQuizMode, lancerBoss, lancerDefiJour,
-  ecranTaupe, ecranFusee, ecranBoutique, ecranAccueil, ecranDiplome
+  lancerNoeud, ecranPingPong, ecranSudoku,
+  ecranTaupe, ecranFusee, ecranBoutique, ecranAccueil, ecranAventure, ecranDiplome
 };
 
 /* ---------- Démarrage ---------- */

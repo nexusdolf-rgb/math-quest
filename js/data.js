@@ -22,7 +22,15 @@ const NIVEAUX = [
   { id: 12, nom: 'Premières Divisions',     sous: 'Partages de 2 à 5',   operation: 'divtranche', tranche: [2, 5], questions: 10, emoji: '➗', couleur: 'linear-gradient(135deg,#38bdf8,#6366f1)' },
   { id: 13, nom: 'Géants Additions',        sous: 'Additions 10-100',    operation: 'add',    min: 10, max: 100, questions: 10, emoji: '🐘', couleur: 'linear-gradient(135deg,#c084fc,#7c3aed)' },
   { id: 14, nom: 'Géants Soustractions',    sous: 'Retraits 20-100',     operation: 'sub',    min: 20, max: 100, questions: 10, emoji: '🦒', couleur: 'linear-gradient(135deg,#f472b6,#be185d)' },
-  { id: 15, nom: 'Grand Champion',          sous: 'Défi Final de boss',  operation: 'mixeddur', min: 5, max: 80, questions: 12, emoji: '🏆', couleur: 'linear-gradient(135deg,#d946ef,#db2777)' }
+  { id: 15, nom: 'Grand Champion',          sous: 'Défi Final de boss',  operation: 'mixeddur', min: 5, max: 80, questions: 12, emoji: '🏆', couleur: 'linear-gradient(135deg,#d946ef,#db2777)' },
+  /* --- Niveaux 16 à 22 : ados et adultes (difficulté adaptée à l'âge) --- */
+  { id: 16, nom: 'Rapide Futé',             sous: 'Calculs mélangés vite', operation: 'mixeddur',  min: 10, max: 100, questions: 10, emoji: '⚡', couleur: 'linear-gradient(135deg,#22d3ee,#3b82f6)' },
+  { id: 17, nom: 'Tables Pro',              sous: 'Tables de 6 à 12',     operation: 'multranche', tranche: [6, 12], questions: 10, emoji: '✖️', couleur: 'linear-gradient(135deg,#fbbf24,#f97316)' },
+  { id: 18, nom: 'Divisions Pro',           sous: 'Partages de 6 à 12',   operation: 'divtranche', tranche: [6, 12], questions: 10, emoji: '➗', couleur: 'linear-gradient(135deg,#38bdf8,#6366f1)' },
+  { id: 19, nom: 'Grands Mélanges',         sous: 'Additions et retraits géants', operation: 'mixeddur', min: 30, max: 200, questions: 12, emoji: '🌊', couleur: 'linear-gradient(135deg,#818cf8,#8b5cf6)' },
+  { id: 20, nom: 'Foudre de Calcul',        sous: 'Tables 7 à 12, vitesse', operation: 'multranche', tranche: [7, 12], questions: 12, emoji: '🌩️', couleur: 'linear-gradient(135deg,#facc15,#eab308)' },
+  { id: 21, nom: 'Partages Géants',         sous: 'Grandes divisions',     operation: 'divtranche', tranche: [7, 12], questions: 12, emoji: '🌀', couleur: 'linear-gradient(135deg,#2dd4bf,#0891b2)' },
+  { id: 22, nom: 'Champion Suprême',        sous: 'Épreuve ultime',        operation: 'mixeddur', min: 50, max: 300, questions: 15, emoji: '🌌', couleur: 'linear-gradient(135deg,#f43f5e,#7c3aed)' }
 ];
 
 /* 21 modes de jeu */
@@ -47,7 +55,12 @@ const MODES = [
   { id: 'fusee',     nom: 'Fusée',                  sous: '60 secondes, un max de calculs !', emoji: '🚀', couleur: 'linear-gradient(135deg,#60a5fa,#8b5cf6)' },
   { id: 'coloriage', nom: 'Coloriage Magique',      sous: 'Fais apparaître les dessins',      emoji: '🎨', couleur: 'linear-gradient(135deg,#f472b6,#a78bfa,#22d3ee)' },
   { id: 'duel',      nom: 'Mode Duel',              sous: 'Affronte un ami',                  emoji: '⚔️', couleur: 'linear-gradient(135deg,#f43f5e,#a855f7,#06b6d4)' },
-  { id: 'party',     nom: 'Multijoueur',            sous: 'Joue à plusieurs (2 à 4)',         emoji: '🎉', couleur: 'linear-gradient(135deg,#34d399,#22d3ee,#3b82f6)' }
+  { id: 'party',     nom: 'Multijoueur',            sous: 'Joue à plusieurs (2 à 4)',         emoji: '🎉', couleur: 'linear-gradient(135deg,#34d399,#22d3ee,#3b82f6)' },
+  /* --- Jeux v3.0 --- */
+  { id: 'pingpong',  nom: 'Ping-Pong Mental',       sous: 'Des calculs de plus en plus vite !', emoji: '🏓', couleur: 'linear-gradient(135deg,#34d399,#0ea5e9)', nouveau: true },
+  { id: 'sudoku',    nom: 'Sudoku des Nombres',     sous: 'Logique et chiffres',             emoji: '🧩', couleur: 'linear-gradient(135deg,#a78bfa,#7c3aed)', nouveau: true },
+  { id: 'suite-pro', nom: 'Suites Pro',             sous: 'Suites, carrés et géométrie',     emoji: '🎰', couleur: 'linear-gradient(135deg,#fb923c,#e11d48)', nouveau: true },
+  { id: 'equations', nom: 'Équations',              sous: 'Trouve x et les pourcentages',    emoji: '🧮', couleur: 'linear-gradient(135deg,#60a5fa,#1d4ed8)', nouveau: true }
 ];
 
 /* 16 badges */
@@ -56,7 +69,7 @@ const BADGES = [
   { id: 'perfect',     nom: 'Sans Faute',      emoji: '💯', desc: '3 étoiles à un niveau' },
   { id: 'streak_5',    nom: 'En Feu',          emoji: '🔥', desc: "5 bonnes réponses d'affilée" },
   { id: 'half_done',   nom: 'Mi-Chemin',       emoji: '🎯', desc: 'Termine 7 niveaux' },
-  { id: 'champion',    nom: 'Champion',        emoji: '🏆', desc: 'Termine les 15 niveaux' },
+  { id: 'champion',    nom: 'Champion',        emoji: '🏆', desc: 'Termine tous les niveaux de calcul' },
   { id: 'star_master', nom: 'Maître Étoile',   emoji: '✨', desc: 'Récolte 30 étoiles' },
   { id: 'xp_100',      nom: 'Centurion',       emoji: '🎖️', desc: 'Gagne 100 XP' },
   { id: 'xp_500',      nom: 'Légende',         emoji: '👑', desc: 'Gagne 500 XP' },
@@ -67,7 +80,13 @@ const BADGES = [
   { id: 'pilote',      nom: 'Pilote Fusée',    emoji: '🚀', desc: '15 bonnes réponses en Fusée' },
   { id: 'taupe_pro',   nom: 'Tapeur de Taupes', emoji: '🔨', desc: '20 taupes en une partie' },
   { id: 'tirelire',    nom: 'Petite Tirelire', emoji: '🐷', desc: 'Accumule 200 pièces' },
-  { id: 'assidu',      nom: 'Assiduité',       emoji: '📅', desc: 'Reviens 3 jours de suite' }
+  { id: 'assidu',      nom: 'Assiduité',       emoji: '📅', desc: 'Reviens 3 jours de suite' },
+  /* --- Badges v3.0 Aventure --- */
+  { id: 'aventurier',  nom: 'Jeune Aventurier', emoji: '🗺️', desc: 'Termine le premier monde de la carte' },
+  { id: 'boss3',       nom: 'Terreur des Boss', emoji: '⚔️', desc: 'Bats les 3 boss de l\'aventure' },
+  { id: 'tresors',     nom: 'Chercheur de Trésors', emoji: '🧰', desc: 'Ouvre tous les coffres de la carte' },
+  { id: 'grand_explorateur', nom: 'Grand Explorateur', emoji: '🏅', desc: 'Termine toute la carte Aventure' },
+  { id: 'ping_pro',    nom: 'Pro du Ping-Pong', emoji: '🏓', desc: 'Atteins 15 échanges au Ping-Pong Mental' }
 ];
 
 const TITRES = [
@@ -173,3 +192,85 @@ const CONSEILS_MASCOTTE = [
 ];
 
 const OBJETS_COMPTE = ['🍒', '⭐', '🍌', '🐠', '🎈', '🌸', '🍓', '💎', '🐝', '🍩'];
+
+/* ============================================================
+   v3.0 — MODE AVENTURE : 5 mondes, coffres et 3 boss
+   type 'niveau' → niveau de Calcul Mental (champ `niveau`)
+   type 'jeu'    → jeu spécial/quiz (champ `mode`)
+   type 'boss'   → combat de boss (champ `boss`, index dans BOSS_AVENTURE)
+   type 'coffre' → récompense unique (champ `pieces`)
+   ============================================================ */
+const BOSS_AVENTURE = [
+  { id: 1, emoji: '🐙', nom: 'Poulipo le Malin', questions: 12, pieces: 40 },
+  { id: 2, emoji: '👾', nom: 'Robotix le Cyber-Fantôme', questions: 14, pieces: 70 },
+  { id: 3, emoji: '🐉', nom: 'Dragocalcul', questions: 15, pieces: 120 }
+];
+
+const AVENTURE = [
+  {
+    id: 'foret', nom: 'Forêt des Nombres', emoji: '🌳', ageMin: 0,
+    ambiance: 'linear-gradient(135deg,#bbf7d0,#86efac)',
+    noeuds: [
+      { id: 'f1', type: 'niveau', niveau: 1 },
+      { id: 'f2', type: 'niveau', niveau: 2 },
+      { id: 'f3', type: 'jeu', mode: 'devinette' },
+      { id: 'f4', type: 'niveau', niveau: 3 },
+      { id: 'fc1', type: 'coffre', pieces: 25 }
+    ]
+  },
+  {
+    id: 'plage', nom: 'Plage des Tables', emoji: '🏖️', ageMin: 0,
+    ambiance: 'linear-gradient(135deg,#fde68a,#7dd3fc)',
+    noeuds: [
+      { id: 'p1', type: 'niveau', niveau: 4 },
+      { id: 'p2', type: 'niveau', niveau: 5 },
+      { id: 'p3', type: 'niveau', niveau: 6 },
+      { id: 'p4', type: 'niveau', niveau: 7 },
+      { id: 'pc1', type: 'coffre', pieces: 30 },
+      { id: 'p5', type: 'niveau', niveau: 8 },
+      { id: 'p6', type: 'niveau', niveau: 9 }
+    ]
+  },
+  {
+    id: 'montagne', nom: 'Montagne des Divisions', emoji: '⛰️', ageMin: 0,
+    ambiance: 'linear-gradient(135deg,#cbd5e1,#a78bfa)',
+    noeuds: [
+      { id: 'm1', type: 'niveau', niveau: 10 },
+      { id: 'm2', type: 'jeu', mode: 'memory' },
+      { id: 'm3', type: 'niveau', niveau: 11 },
+      { id: 'm4', type: 'niveau', niveau: 12 },
+      { id: 'm5', type: 'niveau', niveau: 13 },
+      { id: 'm6', type: 'niveau', niveau: 14 },
+      { id: 'mb1', type: 'boss', boss: 1 }
+    ]
+  },
+  {
+    id: 'espace', nom: 'Espace des Ados', emoji: '🪐', ageMin: 11,
+    ambiance: 'linear-gradient(135deg,#312e81,#7c3aed)',
+    noeuds: [
+      { id: 'e1', type: 'niveau', niveau: 16 },
+      { id: 'e2', type: 'jeu', mode: 'sudoku' },
+      { id: 'e3', type: 'niveau', niveau: 17 },
+      { id: 'e4', type: 'niveau', niveau: 18 },
+      { id: 'e5', type: 'jeu', mode: 'suite-pro' },
+      { id: 'e6', type: 'niveau', niveau: 19 },
+      { id: 'ec1', type: 'coffre', pieces: 50 },
+      { id: 'e7', type: 'jeu', mode: 'equations' },
+      { id: 'eb2', type: 'boss', boss: 2 }
+    ]
+  },
+  {
+    id: 'ile', nom: 'Île des Champions', emoji: '🌋', ageMin: 13,
+    ambiance: 'linear-gradient(135deg,#7c2d12,#dc2626)',
+    noeuds: [
+      { id: 'i1', type: 'jeu', mode: 'pingpong' },
+      { id: 'i2', type: 'niveau', niveau: 20 },
+      { id: 'i3', type: 'niveau', niveau: 21 },
+      { id: 'i4', type: 'jeu', mode: 'taupe' },
+      { id: 'i5', type: 'jeu', mode: 'horloge' },
+      { id: 'i6', type: 'niveau', niveau: 22 },
+      { id: 'ib3', type: 'boss', boss: 3 },
+      { id: 'ic1', type: 'coffre', pieces: 120 }
+    ]
+  }
+];

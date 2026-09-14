@@ -1,7 +1,7 @@
 {
   "name": "Math Quest — Le jeu de maths pour les enfants",
   "short_name": "Math Quest",
-  "description": "Jeu éducatif de mathématiques pour les 5-12 ans : calcul mental, tables, divisions, heure, monnaie, formes et bien plus !",
+  "description": "Jeu éducatif de mathématiques de 5 ans à l'âge adulte : carte Aventure avec 5 mondes et 3 boss, 25 jeux, calcul mental, tables, divisions, équations… 100% hors-ligne !",
   "lang": "fr",
   "start_url": "./index.html",
   "scope": "./",

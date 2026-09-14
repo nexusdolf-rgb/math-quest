@@ -1,5 +1,5 @@
 /* Math Quest — Service Worker (hors-ligne) */
-const VERSION = 'math-quest-v3-';
+const VERSION = 'math-quest-v4-';
 const FICHIERS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const FICHIERS = [
   './js/questions.js',
   './js/engine-quiz.js',
   './js/games.js',
+  './js/aventure.js',
   './js/screens.js',
   './js/app.js',
   './manifest.json',

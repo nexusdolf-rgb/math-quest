@@ -507,3 +507,103 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
 @media (min-width: 600px) {
   .grille-jeux { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ============================================================
+   v3.0 — MODE AVENTURE
+   ============================================================ */
+.aventure-carte { padding: 10px; }
+.avt-monde { margin: 16px 0; border-radius: 24px; overflow: hidden; background: #fff;
+  box-shadow: var(--ombre-petite, 0 6px 18px rgba(45,35,80,.10)); }
+.avt-bandeau { display: flex; align-items: center; gap: 10px; padding: 12px 14px; color: #2d2350; }
+.avt-bandeau.sombre { color: #fff; }
+.avt-monde-emoji { font-size: 2rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+.avt-monde-nom { font-weight: 700; font-size: 1rem; }
+.avt-monde-prog { font-size: .75rem; opacity: .85; }
+.avt-monde-barre { flex: 1; height: 10px; border-radius: 99px; overflow: hidden;
+  background: rgba(255,255,255,.55); margin-left: auto; max-width: 90px; }
+.avt-monde-barre span { display: block; height: 100%; background: linear-gradient(90deg,#7c3aed,#ec4899); }
+.avt-chemin { position: relative; padding: 16px 10px 24px; background: linear-gradient(180deg,#ffffff,#f6f3ff); }
+.avt-chemin::before { content: ''; position: absolute; left: 50%; top: 34px; bottom: 34px;
+  border-left: 4px dashed #c4b5fd; z-index: 0; }
+.avt-ligne { position: relative; z-index: 1; display: flex; align-items: center;
+  width: 50%; min-height: 84px; margin: 2px 0; }
+.avt-ligne.gauche { justify-content: flex-start; padding-right: 10px; }
+.avt-ligne.droite { margin-left: 50%; justify-content: flex-end; padding-left: 10px; }
+.avt-noeud { display: flex; align-items: center; gap: 8px; background: none; border: none;
+  font-family: inherit; cursor: pointer; width: 100%; padding: 0; }
+.avt-ligne.gauche .avt-noeud { flex-direction: row; text-align: left; }
+.avt-ligne.droite .avt-noeud { flex-direction: row-reverse; text-align: right; }
+.avt-cercle { width: 58px; height: 58px; flex: none; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 1.7rem; color: #fff;
+  background: linear-gradient(135deg,#a78bfa,#7c3aed);
+  box-shadow: 0 5px 12px rgba(124,58,237,.35); transition: transform .15s; }
+.avt-noeud:active .avt-cercle { transform: scale(.9); }
+.avt-legende { display: flex; flex-direction: column; gap: 1px; background: #fff; border-radius: 14px;
+  padding: 6px 8px; box-shadow: 0 3px 9px rgba(45,35,80,.10); min-width: 0; flex: 1; }
+.avt-ligne.droite .avt-legende { align-items: flex-end; }
+.avt-boss .avt-cercle { width: 76px; height: 76px; font-size: 2.4rem;
+  background: linear-gradient(135deg,#f87171,#b91c1c); box-shadow: 0 6px 16px rgba(185,28,28,.45);
+  animation: bossPulse 1.6s ease-in-out infinite; }
+@keyframes bossPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+.avt-coffre .avt-cercle { background: linear-gradient(135deg,#fde68a,#d97706);
+  box-shadow: 0 5px 12px rgba(217,119,6,.4); }
+.avt-noeud.fait .avt-cercle { background: linear-gradient(135deg,#86efac,#16a34a);
+  box-shadow: 0 5px 12px rgba(22,163,74,.35); }
+.avt-noeud.fait.avt-boss .avt-cercle { background: linear-gradient(135deg,#fbbf24,#d97706); }
+.avt-noeud.verrouille .avt-cercle { background: #e2e8f0; color: #94a3b8; box-shadow: none; animation: none; }
+.avt-nom { font-weight: 700; font-size: .82rem; color: #2d2350; line-height: 1.15; }
+.avt-sous { font-size: .66rem; color: #8b83a8; line-height: 1.15; }
+.avt-etoiles { font-size: .68rem; letter-spacing: 0; color: #f59e0b; margin-top: 1px; white-space: nowrap; }
+.avt-cadenas { padding: 22px 16px; text-align: center; color: #8b83a8; font-size: .9rem; background: #f6f3ff; }
+
+/* ---- Combat de boss ---- */
+.boss-arene { text-align: center; margin: 4px 0 10px; }
+.boss-monstre { display: inline-block; font-size: 3.2rem; line-height: 1;
+  animation: bossFlotte 1.7s ease-in-out infinite; }
+@keyframes bossFlotte { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+.boss-monstre.touche { animation: bossTouche .42s; }
+@keyframes bossTouche {
+  0% { transform: translateX(0) rotate(0); filter: none; }
+  30% { transform: translateX(-10px) rotate(-10deg); filter: hue-rotate(120deg); }
+  60% { transform: translateX(7px) rotate(8deg) scale(.9); filter: hue-rotate(240deg); }
+  100% { transform: translateX(0) rotate(0); filter: none; }
+}
+.boss-pv { height: 15px; border-radius: 99px; overflow: hidden; border: 2px solid #b91c1c;
+  background: #fee2e2; margin-top: 6px; }
+.boss-pv > div { height: 100%; background: linear-gradient(90deg,#f87171,#dc2626); transition: width .5s ease; }
+.boss-nom { font-size: .78rem; font-weight: 700; color: #b91c1c; margin-top: 3px; }
+
+/* ---- Ping-Pong mental ---- */
+.ping-haut { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ping-coeurs { font-size: 1.5rem; letter-spacing: 2px; }
+.ping-terrain { position: relative; border-radius: 20px; padding: 8px; min-height: 168px;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  background: linear-gradient(180deg,#bae6fd 0%,#bae6fd 47%,#a7f3d0 53%,#6ee7b7 100%); }
+.ping-joueur { font-size: 2.3rem; }
+.ping-adversaire { animation: pingAdv 1.4s ease-in-out infinite; }
+@keyframes pingAdv { 0%,100% { transform: translateX(-14px); } 50% { transform: translateX(14px); } }
+.ping-balle { background: #fff; border-radius: 14px; padding: 2px 12px; box-shadow: 0 4px 10px rgba(45,35,80,.15);
+  animation: pingBalle 1s ease-in-out infinite; }
+.ping-balle .q-calcul { font-size: 1.45rem; font-weight: 700; margin: 4px 0; }
+@keyframes pingBalle { 0%,100% { transform: translateY(20px); } 50% { transform: translateY(-22px); } }
+.adv-marque { animation: advMarque .6s; }
+@keyframes advMarque {
+  0%,100% { transform: translateX(0); } 30% { transform: translateX(12px) rotate(12deg) scale(1.15); }
+  60% { transform: translateX(-7px) rotate(-8deg); }
+}
+
+/* ---- Sudoku ---- */
+.grille-sudoku { display: grid; max-width: 380px; margin: 0 auto; background: #7c3aed;
+  border: 3px solid #7c3aed; border-radius: 14px; overflow: hidden; }
+.cell-sud { aspect-ratio: 1; border: 1px solid #ddd6fe; background: #fff; color: #7c3aed;
+  font-family: inherit; font-size: 1.6rem; font-weight: 700; padding: 0; }
+.cell-sud.fixe { background: #ede9fe; color: #2d2350; }
+.cell-sud.vide { cursor: pointer; }
+.cell-sud.selection { background: #fde68a; box-shadow: inset 0 0 0 3px #f59e0b; }
+.cell-sud.fausse { background: #fecaca; animation: secoue .4s; }
+@keyframes secoue { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); } }
+
+/* ---- Navigation à 6 onglets ---- */
+.nav-bas button { font-size: .62rem; }
+.nav-bas button .nb-icone { font-size: 1.2rem; }

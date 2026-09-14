@@ -560,3 +560,225 @@ function podiumFete() {
     </div>`);
   pluieConfettis(140); sfx('niveau');
 }
+
+/* =================  PING-PONG MENTAL (v3.0)  ================= */
+function ecranPingPong() {
+  toutArreter();
+  JEU.ping = {
+    vies: 3, score: 0, serie: 0, question: null, verrouille: false, encaisse: false,
+    fini: false, delaiMs: 12000, restant: 12000, opStats: {}, dernierTick: null, timer: null
+  };
+  JEU.dernier = { type: 'mode', mode: 'pingpong' };
+  nouvelleQuestionPing();
+  rendrePing();
+  JEU.ping.timer = toutesLes(() => {
+    const p = JEU.ping;
+    if (!p || p.fini || p.verrouille) return;
+    p.restant -= 100;
+    const barre = $('#ping-barre'), chrono = $('#ping-chrono');
+    if (barre) barre.style.width = Math.max(0, p.restant / p.delaiMs * 100) + '%';
+    if (chrono) chrono.textContent = Math.ceil(p.restant / 1000);
+    const sec = Math.ceil(p.restant / 1000);
+    if (sec <= 3 && sec >= 1 && sec !== p.dernierTick) { p.dernierTick = sec; sfx('tick'); }
+    if (p.restant <= 0) pingRate();
+  }, 100);
+}
+function nouvelleQuestionPing() {
+  const p = JEU.ping;
+  const q = genereCalcul('mixed');
+  const bonTexte = q.options[q.answer];
+  const distracteurs = melange(q.options.filter((_, i) => i !== q.answer)).slice(0, 2);
+  q.options = melange([bonTexte, ...distracteurs]);
+  q.answer = q.options.indexOf(bonTexte);
+  p.question = q;
+  p.delaiMs = Math.max(3800, 12000 - p.score * 420);
+  p.restant = p.delaiMs;
+  p.dernierTick = null;
+}
+function rendrePing() {
+  const p = JEU.ping, q = p.question;
+  afficher(`${entetePage('🏓 Ping-Pong Mental', 'jeux')}
+    <div class="carte">
+      <div class="ping-haut">
+        <div class="ping-coeurs">${'❤️'.repeat(p.vies)}${'🤍'.repeat(Math.max(0, 3 - p.vies))}</div>
+        <div class="qh-score" style="font-size:1.2rem">🏓 <b>${p.score}</b> échanges</div>
+      </div>
+      <div class="ping-terrain">
+        <div class="ping-joueur ping-adversaire" id="ping-adv">👾</div>
+        <div class="ping-balle">${q.visuel.replace('q-calcul', 'q-calcul ping-calcul')}</div>
+        <div class="ping-joueur ping-moi">🧒</div>
+      </div>
+      <div class="barre-temps mt"><div id="ping-barre" style="width:100%"></div></div>
+      <div class="reponses mt" style="grid-template-columns:repeat(3,1fr)">
+        ${q.options.map((o, i) => `<button class="reponse" style="font-size:1.4rem;min-height:60px;padding:10px" data-act="ping-rep" data-i="${i}">${o}</button>`).join('')}
+      </div>
+      <p class="petit-texte mt">🔥 Série : ${p.serie} • plus tu gagnes, plus la balle va vite !</p>
+    </div>`);
+}
+function pingRepond(i) {
+  const p = JEU.ping;
+  if (!p || p.fini || p.verrouille) return;
+  const q = p.question;
+  const boutons = $$('.reponse');
+  boutons[q.answer].classList.add('bonne');
+  if (i === q.answer) {
+    p.verrouille = true;
+    p.score++; p.serie++;
+    p.opStats[q.op || 'autre'] = (p.opStats[q.op || 'autre'] || 0) + 1;
+    sfx('bonne', p.score);
+    if (p.score % 5 === 0) AudioMX.voix('combo', true); else AudioMX.voix('bonne');
+    if (boutons[i]) flottantSurElement(boutons[i], '+1 🏓', '#16a34a');
+    apres(() => {
+      if (p.fini) return;
+      nouvelleQuestionPing(); p.verrouille = false; rendrePing();
+    }, 280);
+  } else {
+    if (boutons[i]) boutons[i].classList.add('mauvaise');
+    pingRate();
+  }
+}
+function pingRate() {
+  const p = JEU.ping;
+  if (!p || p.fini || p.encaisse) return;
+  p.encaisse = true; p.verrouille = true;
+  p.vies--; p.serie = 0;
+  sfx('faute'); AudioMX.voix('faute');
+  const adv = $('#ping-adv');
+  if (adv) adv.classList.add('adv-marque');
+  apres(() => {
+    if (p.vies <= 0) { finirPing(); return; }
+    nouvelleQuestionPing(); p.verrouille = false; p.encaisse = false; rendrePing();
+  }, 750);
+}
+function finirPing() {
+  const p = JEU.ping;
+  if (p.fini) return;
+  p.fini = true;
+  toutArreter();
+  const etoiles = p.score >= 15 ? 3 : p.score >= 10 ? 2 : p.score >= 5 ? 1 : 0;
+  const recordBattu = batRecord('pingpong', p.score, true);
+  const gain = finSession({
+    mode: 'pingpong', justes: p.score, total: Math.max(1, p.score), serie: p.serie,
+    etoiles, parfait: p.score >= 15, opStats: p.opStats,
+    recordCle: 'pingpong', recordValeur: p.score
+  });
+  if (p.score >= 10) { pluieConfettis(110); sfx('niveau'); }
+  ecranResultats({
+    emoji: p.score >= 10 ? '🏓' : '🪶', titre: `${p.score} échanges gagnés !`,
+    justes: p.score, total: Math.max(1, p.score), serie: p.serie, etoiles,
+    pieces: gain.pieces, xp: gain.xp, badges: gain.badges, missions: gain.missionsTerminees,
+    petitTexte: recordBattu ? '🏆 Nouveau record !' : `Record : ${joueur.records.pingpong || 0}`
+  });
+}
+
+/* =================  SUDOKU DES NOMBRES (v3.0)  ================= */
+function genererGrilleSudoku(n) {
+  let base;
+  if (n === 4) base = [[1, 2, 3, 4], [3, 4, 1, 2], [2, 3, 4, 1], [4, 1, 2, 3]];
+  else base = [[1, 2, 3], [2, 3, 1], [3, 1, 2]];
+  // Permutation des symboles
+  const symboles = melange(Array.from({ length: n }, (_, i) => i + 1));
+  let g = base.map(l => l.map(v => symboles[v - 1]));
+  const transpose = m => m[0].map((_, j) => m.map(r => r[j]));
+  if (n === 4) {
+    const ech = (a, b) => { [g[a], g[b]] = [g[b], g[a]]; };
+    if (Math.random() < .5) ech(0, 1);
+    if (Math.random() < .5) ech(2, 3);
+    if (Math.random() < .5) { ech(0, 2); ech(1, 3); }
+    g = transpose(g);
+    const echC = (a, b) => { [g[a], g[b]] = [g[b], g[a]]; };
+    if (Math.random() < .5) echC(0, 1);
+    if (Math.random() < .5) echC(2, 3);
+    if (Math.random() < .5) { echC(0, 2); echC(1, 3); }
+    g = transpose(g);
+  } else {
+    g = melange(g);
+    g = transpose(g);
+    g = melange(g);
+    g = transpose(g);
+  }
+  return g;
+}
+function ecranSudoku() {
+  const taille = (joueur && joueur.age <= 6) ? 3 : 4;
+  const solution = genererGrilleSudoku(taille);
+  const grille = solution.map(l => l.slice());
+  const nbTrous = taille === 3 ? 4 : 9;
+  const trous = melange(Array.from({ length: taille * taille }, (_, i) => i)).slice(0, nbTrous);
+  trous.forEach(k => { grille[Math.floor(k / taille)][k % taille] = 0; });
+  JEU.sudoku = { taille, solution, grille, fixes: new Set(), selection: null, erreurs: 0, fini: false };
+  for (let k = 0; k < taille * taille; k++) if (!trous.includes(k)) JEU.sudoku.fixes.add(k);
+  JEU.dernier = { type: 'mode', mode: 'sudoku' };
+  rendreSudoku();
+}
+function rendreSudoku() {
+  const s = JEU.sudoku;
+  const n = s.taille;
+  let cases = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const k = r * n + c, v = s.grille[r][c];
+    const fixe = s.fixes.has(k);
+    const selectionne = s.selection === k;
+    const bord = `${c % (n === 4 ? 2 : n) === 0 ? 'border-left-width:3px;' : ''}${r % (n === 4 ? 2 : n) === 0 ? 'border-top-width:3px;' : ''}${c === n - 1 ? 'border-right-width:3px;' : ''}${r === n - 1 ? 'border-bottom-width:3px;' : ''}`;
+    cases += `<button class="cell-sud ${fixe ? 'fixe' : 'vide'} ${selectionne ? 'selection' : ''} ${s.erreurCase === k ? 'fausse' : ''}"
+      style="${bord}" data-act="sud-cell" data-k="${k}">${v || ''}</button>`;
+  }
+  afficher(`${entetePage('🧩 Sudoku des Nombres', 'jeux')}
+    <div class="carte">
+      <p class="center mb">Chaque ligne et chaque colonne doit contenir <b>tous les nombres de 1 à ${n}</b> !</p>
+      <div class="grille-sudoku" style="grid-template-columns:repeat(${n},1fr)">${cases}</div>
+      <p class="petit-texte center mt">Erreurs : <b>${s.erreurs}</b> • touche une case vide puis un nombre 👇</p>
+      <div class="pave-numerique mt" style="max-width:340px;margin:0 auto">
+        ${Array.from({ length: n }, (_, i) => `<button class="btn btn-principal" style="font-size:1.4rem" data-act="sud-chiffre" data-n="${i + 1}">${i + 1}</button>`).join('')}
+        <button class="btn btn-rouge" data-act="sud-efface">⌫</button>
+      </div>
+    </div>${navHTML('')}`);
+}
+function sudChoisit(k) {
+  const s = JEU.sudoku;
+  if (!s || s.fini || s.fixes.has(k)) return;
+  s.selection = k; sfx('clic'); rendreSudoku();
+}
+function sudChiffre(n) {
+  const s = JEU.sudoku;
+  if (!s || s.fini || s.selection === null) { dire('Touche d\'abord une case vide !'); return; }
+  const k = s.selection, r = Math.floor(k / s.taille), c = k % s.taille;
+  if (n === s.solution[r][c]) {
+    s.grille[r][c] = n;
+    s.selection = null;
+    sfx('bonne');
+    rendreSudoku();
+    if (s.grille.every((ligne, i) => ligne.every((v, j) => v === s.solution[i][j]))) finirSudoku();
+  } else {
+    s.erreurs++; s.erreurCase = k;
+    sfx('faute'); AudioMX.voix('faute');
+    rendreSudoku();
+    apres(() => { if (JEU.sudoku === s) { s.erreurCase = null; rendreSudoku(); } }, 450);
+  }
+}
+function sudEfface() {
+  const s = JEU.sudoku;
+  if (!s || s.fini || s.selection === null) return;
+  const k = s.selection;
+  s.grille[Math.floor(k / s.taille)][k % s.taille] = 0;
+  s.selection = null;
+  rendreSudoku();
+}
+function finirSudoku() {
+  const s = JEU.sudoku;
+  if (s.fini) return;
+  s.fini = true;
+  toutArreter();
+  const etoiles = s.erreurs === 0 ? 3 : s.erreurs <= 2 ? 2 : 1;
+  const gain = finSession({
+    mode: 'sudoku', justes: 1, total: 1, serie: 0, etoiles,
+    parfait: s.erreurs === 0, opStats: { autre: 1 }
+  });
+  pluieConfettis(120); sfx('niveau');
+  ecranResultats({
+    emoji: '🧩', titre: 'Grille résolue !', justes: 1, total: 1, serie: 0,
+    etoiles, pieces: gain.pieces, xp: gain.xp, badges: gain.badges,
+    missions: gain.missionsTerminees,
+    petitTexte: s.erreurs === 0 ? 'Sans une seule erreur ! 🌟' : `${s.erreurs} erreur(s)`
+  });
+}

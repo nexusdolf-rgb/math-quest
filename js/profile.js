@@ -23,6 +23,7 @@ function profilVide() {
     serieJours: 0, dernierJour: null,
     missions: null,              // { date, list:[ids], fait:[ids] }
     jour: null,                  // compteurs du jour
+    aventure: { noeuds: {}, coffres: [] }, // v3.0 : carte des mondes
     stats: {
       parties: 0, justes: 0, total: 0, serieMax: 0,
       ops: { add: 0, sub: 0, mul: 0, div: 0, autre: 0 }
@@ -181,6 +182,14 @@ function verifierBadges() {
   donne((joueur.records.taupe || 0) >= 20, 'taupe_pro');
   donne(joueur.pieces >= 200, 'tirelire');
   donne(joueur.serieJours >= 3, 'assidu');
+  // v3.0 : badges Aventure (les helpers sont définis dans aventure.js)
+  if (joueur.aventure) {
+    donne(mondeFini(0), 'aventurier');
+    donne(['mb1', 'eb2', 'ib3'].every(id => (joueur.aventure.noeuds[id] || 0) > 0), 'boss3');
+    donne(tousCoffresPris(), 'tresors');
+    donne(aventureFinie(), 'grand_explorateur');
+  }
+  donne((joueur.records.pingpong || 0) >= 15, 'ping_pro');
   if (nouveaux.length) sfx('debloque');
   sauverJoueur();
   return nouveaux;
@@ -254,6 +263,12 @@ function finSession(opts) {
   if (opts.niveauId !== undefined && opts.etoiles !== null && opts.etoiles !== undefined) {
     const ancienE = joueur.etoiles[opts.niveauId] || 0;
     joueur.etoiles[opts.niveauId] = Math.max(ancienE, opts.etoiles);
+  }
+  // v3.0 : progression de la carte Aventure
+  const aventureId = opts.aventureId !== undefined ? opts.aventureId : (JEU.aventureId || null);
+  if (aventureId && opts.etoiles !== null && opts.etoiles !== undefined && joueur.aventure) {
+    const ancien = joueur.aventure.noeuds[aventureId] || 0;
+    joueur.aventure.noeuds[aventureId] = Math.max(ancien, opts.etoiles);
   }
   ajouterPieces(pieces);
   ajouterXP(xp);

@@ -7,8 +7,8 @@
 /* ---------- Morceaux d'interface réutilisables ---------- */
 function navHTML(actif) {
   const items = [
-    ['accueil', '🏠', 'Accueil'], ['jeux', '🎮', 'Jeux'], ['defis', '🏅', 'Défis'],
-    ['classement', '🏆', 'Top'], ['profil', '🧒', 'Profil']
+    ['accueil', '🏠', 'Accueil'], ['aventure', '🗺️', 'Carte'], ['jeux', '🎮', 'Jeux'],
+    ['defis', '🏅', 'Défis'], ['classement', '🏆', 'Top'], ['profil', '🧒', 'Profil']
   ];
   return `<nav class="nav-bas">${items.map(([id, ic, nom]) =>
     `<button data-act="nav" data-ecran="${id}" class="${actif === id ? 'actif' : ''}"><span class="nb-icone">${ic}</span>${nom}</button>`
@@ -74,9 +74,10 @@ function ecranAccueil() {
   const pct = seuilSuivant ? Math.min(100, Math.round((joueur.xp - palierPrecedent) / (seuilSuivant - palierPrecedent) * 100)) : 100;
   const defiFait = joueur.quotidienFait === aujourdhui();
   const conseil = CONSEILS_MASCOTTE[new Date().getDate() % CONSEILS_MASCOTTE.length];
-  const suivant = niveauSuivant();
+  const noeudSuivant = typeof prochainNoeud === 'function' ? prochainNoeud() : null;
+  const libSuivant = noeudSuivant ? libelleNoeud(noeudSuivant) : null;
   const finis = niveauxFinis();
-  const aLaUne = ['taupe', 'calcul', 'fusee', 'horloge', 'memory', 'fractions'];
+  const aLaUne = ['pingpong', 'sudoku', 'taupe', 'calcul', 'equations', 'fusee'];
   const missions = missionsJour(), j = compteurJour();
 
   afficher(`
@@ -99,19 +100,18 @@ function ecranAccueil() {
       <div class="bulle-mascotte">${conseil}</div>
     </div>
 
-    ${suivant ? `
-      <button class="defi-jour continuer" data-act="lancer-niveau" data-id="${suivant.id}">
-        <span data-emoji>${suivant.emoji}</span>
-        <span><div class="dj-titre">Continuer : ${suivant.nom}</div>
-        <div class="dj-sous">${suivant.sous}</div></span>
-        <span class="dj-fleche">➜</span>
-      </button>` : `
-      <button class="defi-jour continuer" data-act="nav" data-ecran="diplome">
-        <span data-emoji>🎓</span>
-        <span><div class="dj-titre">Voir mon diplôme</div>
-        <div class="dj-sous">Les 15 niveaux sont terminés !</div></span>
-        <span class="dj-fleche">➜</span>
-      </button>`}
+    <button class="defi-jour continuer" data-act="${noeudSuivant ? 'lancer-noeud' : 'nav'}" ${noeudSuivant ? `data-id="${noeudSuivant.id}"` : 'data-ecran="diplome"'}>
+      <span data-emoji>${noeudSuivant ? libSuivant.emoji : '🎓'}</span>
+      <span><div class="dj-titre">${noeudSuivant ? '🗺️ Continuer l\'aventure' : 'Voir mon diplôme'}</div>
+      <div class="dj-sous">${noeudSuivant ? libSuivant.nom + ' — ' + libSuivant.sous : 'La carte est terminée, bravo !'}</div></span>
+      <span class="dj-fleche">➜</span>
+    </button>
+    <button class="defi-jour" data-act="nav" data-ecran="aventure">
+      <span data-emoji>🗺️</span>
+      <span><div class="dj-titre">Carte Aventure</div>
+      <div class="dj-sous">5 mondes, des coffres et 3 boss à battre</div></span>
+      <span class="dj-fleche">➜</span>
+    </button>
 
     <button class="defi-jour ${defiFait ? 'fait' : ''}" data-act="defi-jour">
       <span data-emoji>${defiFait ? '✅' : '🎯'}</span>
@@ -161,7 +161,9 @@ function missionLigneHTML(id, j) {
 }
 
 function carteJeuHTML(m) {
-  const record = m.id === 'fusee' ? joueur.records.fusee : m.id === 'taupe' ? joueur.records.taupe : null;
+  const record = m.id === 'fusee' ? joueur.records.fusee
+    : m.id === 'taupe' ? joueur.records.taupe
+    : m.id === 'pingpong' ? joueur.records.pingpong : null;
   return `<button class="carte-jeu" style="background:${m.couleur}" data-act="ouvrir-mode" data-mode="${m.id}">
     ${m.nouveau ? '<span class="nouveau-badge">NOUVEAU</span>' : ''}
     ${m.id === 'calcul' ? `<span class="cj-badge">⭐ ${totalEtoiles()}/${NIVEAUX.length * 3}</span>` : ''}
@@ -429,7 +431,7 @@ function ecranReglages() {
       <div class="plusieurs-boutons mt">
         <button class="btn btn-grand btn-rouge" data-act="profil-reset">🔄 Changer de joueur (tout recommencer)</button>
       </div>
-      <p class="petit-texte mt">Math Quest v2.0 — jeu éducatif hors-ligne, sans publicité et sans collecte de données.</p>
+      <p class="petit-texte mt">Math Quest v3.0 — jeu éducatif hors-ligne, sans publicité et sans collecte de données.</p>
     </div>${navHTML('')}`);
 }
 
@@ -485,7 +487,8 @@ function ecranResultats(r) {
       }).join('') : ''}
       <div class="plusieurs-boutons mt">
         ${r.prochainNiveau ? `<button class="btn btn-grand btn-vert" data-act="lancer-niveau" data-id="${r.prochainNiveau}">Niveau suivant ➜</button>` : ''}
-        ${r.defi ? '' : '<button class="btn btn-grand btn-principal" data-act="refaire">🔄 Rejouer</button>'}
+        ${(r.carte || (JEU && JEU.aventureId)) ? '<button class="btn btn-grand btn-principal" data-act="nav" data-ecran="aventure">🗺️ Retour sur la carte</button>' : ''}
+        ${r.defi ? '' : '<button class="btn btn-grand" data-act="refaire">🔄 Rejouer</button>'}
         <button class="btn btn-grand" data-act="nav" data-ecran="accueil">🏠 Accueil</button>
       </div>
     </div>`);

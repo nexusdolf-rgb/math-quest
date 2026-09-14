@@ -199,6 +199,76 @@ function genereSuite() {
     'Quel est le prochain nombre ?', 'autre');
 }
 
+/* ---------- Suites Pro (ados / adultes) ---------- */
+function genereSuitePro() {
+  const a = joueur ? joueur.age : 7;
+  if (a < 11) return genereSuite();
+  const types = a >= 13
+    ? ['geo', 'carres', 'fib', 'arith', 'mul', 'neg']
+    : ['geo', 'carres', 'fib', 'arith', 'mul'];
+  const t = choix(types);
+  let termes, reponse;
+  if (t === 'geo') {
+    const debut = alea(2, 5), raison = a >= 13 ? choix([2, 3, 4]) : choix([2, 3]);
+    termes = [0, 1, 2, 3].map(i => debut * raison ** i);
+    reponse = debut * raison ** 4;
+  } else if (t === 'carres') {
+    const n = alea(2, 6);
+    termes = [0, 1, 2, 3].map(i => (n + i) ** 2);
+    reponse = (n + 4) ** 2;
+  } else if (t === 'fib') {
+    const x = alea(2, 7), y = alea(x + 1, x + 6);
+    const s = [x, y];
+    for (let i = 2; i < 5; i++) s.push(s[i - 1] + s[i - 2]);
+    termes = s.slice(0, 4); reponse = s[4];
+  } else if (t === 'mul') {
+    const table = alea(6, a >= 13 ? 12 : 10);
+    termes = [1, 2, 3, 4].map(i => table * i);
+    reponse = table * 5;
+  } else if (t === 'neg') {
+    const debut = -alea(4, 20), pas = alea(3, 11);
+    termes = [0, 1, 2, 3].map(i => debut + i * pas);
+    reponse = debut + 4 * pas;
+  } else {
+    const debut = alea(3, 25), pas = alea(4, 17);
+    termes = [0, 1, 2, 3].map(i => debut + i * pas);
+    reponse = debut + 4 * pas;
+  }
+  const options = optionsNombre(reponse, [1, -1, 2, -2, 10, -10, Math.max(2, Math.round(Math.abs(reponse) * .1))]);
+  return pack(reponse, options,
+    `<div class="q-calcul">${termes.join(', ')}, <span style="color:#8b5cf6">?</span></div>`,
+    'Quel est le prochain nombre ?', 'autre');
+}
+
+/* ---------- Équations et pourcentages (ados / adultes) ---------- */
+function genereEquation() {
+  const a = joueur ? joueur.age : 7;
+  if (a < 10) return genereManquant();
+  const M = a >= 13 ? 40 : 20;
+  const t = a >= 13 ? choix(['xplus', 'xmoins', 'xfois', 'pct', 'pct'])
+                    : choix(['xplus', 'xmoins', 'xfois']);
+  let reponse, texte, op = 'autre';
+  if (t === 'xplus') {
+    const c = alea(2, M), x = alea(1, M);
+    reponse = x; texte = `⬜ + ${c} = ${x + c}`;
+  } else if (t === 'xmoins') {
+    const c = alea(2, M), x = alea(c + 1, c + M);
+    reponse = x; texte = `⬜ − ${c} = ${x - c}`;
+  } else if (t === 'xfois') {
+    const c = alea(2, a >= 13 ? 12 : 10), x = alea(2, 10);
+    reponse = x; texte = `⬜ × ${c} = ${c * x}`; op = 'mul';
+  } else {
+    const p = choix([10, 20, 25, 50, 75]);
+    const multiple = p === 50 ? 2 : p === 10 ? 10 : 4;
+    const base = alea(2, 16) * multiple;
+    reponse = base * p / 100;
+    texte = `${p} % de ${base} = ?`;
+  }
+  const options = optionsNombre(reponse, [1, -1, 2, -2, 5, -5, 10, -10]);
+  return pack(reponse, options, `<div class="q-calcul">${texte}</div>`,
+    t === 'pct' ? 'Combien ça fait ?' : 'Quel nombre remplace ⬜ ?', op);
+}
+
 /* ---------- Compte rapide ---------- */
 function genereCompte() {
   const nombre = alea(3, 15);
@@ -350,7 +420,9 @@ function genereQuestionsMode(mode) {
     'dizaines': genereDizaines,
     'horloge': genereHorloge,
     'monnaie': genereMonnaie,
-    'formes': genereFormes
+    'formes': genereFormes,
+    'suite-pro': genereSuitePro,
+    'equations': genereEquation
   };
   const nb = mode === 'compte' ? 10 : 8;
   return Array.from({ length: nb }, constructeurs[mode]);
@@ -373,6 +445,37 @@ function genereDefiJour() {
   if (joueur.age >= 11) types.push(() => genereCalcul('mixeddur'), () => genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]));
   return Array.from({ length: 10 }, () => choix(types)());
 }
+/* ---------- Boss de l'aventure (3 combats différents) ---------- */
+function genereBossAventure(n) {
+  const p = profilAge();
+  let types;
+  if (n === 1) {
+    types = ['mixeddur', 'horloge', 'formes', 'comparaison', genereSuite];
+    if (joueur.age >= 7) types.push('mul');
+    if (p.div) types.push('div');
+  } else if (n === 2) {
+    types = ['mixeddur', 'multranche', genereSuitePro, genereEquation, 'comparaison', genereVraiFaux];
+    if (p.div) types.push('divtranche');
+  } else {
+    types = ['mixeddur', 'multranche', 'divtranche', genereSuitePro, genereEquation,
+             genereComparaison, genereVraiFaux, genereSuitePro];
+  }
+  const resous = t => {
+    if (t === 'mixeddur') return genereCalcul('mixeddur');
+    if (t === 'mul') return genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]);
+    if (t === 'div') return genereCalcul('div');
+    if (t === 'multranche') return genereCalcul('multranche', 0, 0, null, [p.mul1, p.mul2]);
+    if (t === 'divtranche') return genereCalcul('divtranche', 0, 0, null, [2, p.div ? (p.divB || 9) : 3]);
+    if (t === 'horloge') return genereHorloge();
+    if (t === 'formes') return genereFormes();
+    if (t === 'comparaison') return genereComparaison();
+    if (typeof t === 'function') return t();
+    return genereVraiFaux();
+  };
+  const nb = BOSS_AVENTURE[n - 1].questions;
+  return Array.from({ length: nb }, () => resous(choix(types)));
+}
+
 function genereBoss() {
   const p = profilAge();
   const types = ['mixeddur', 'horloge', 'formes', 'comparaison', genereSuite];
