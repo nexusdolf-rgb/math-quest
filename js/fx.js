@@ -122,7 +122,12 @@ function animeEtoiles(selecteur = '.etoiles-resultat .et') {
 }
 
 /* ---------- Avatar avec accessoire ---------- */
-function avatarHTML(emoji, accessoire, taille = '') {
+function avatarHTML(emoji, accessoire, taille = '', type = '') {
+  // Un déguisement ('visage') remplace entièrement la tête ; les autres
+  // accessoires se posent dessus (chapeau) ou en badge en bas à droite.
+  if (accessoire && type === 'visage') {
+    return `<span class="avatar-wrap ${taille} deguise"><span class="av">${accessoire}</span></span>`;
+  }
   return `<span class="avatar-wrap ${taille}"><span class="av">${emoji}</span>${
-    accessoire ? `<span class="accessoire">${accessoire}</span>` : ''}</span>`;
+    accessoire ? `<span class="accessoire ${type === 'badge' ? 'acc-badge' : ''}">${accessoire}</span>` : ''}</span>`;
 }

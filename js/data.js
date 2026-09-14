@@ -4,6 +4,8 @@
    ============================================================ */
 'use strict';
 
+const VERSION_JEU = 'v3.2.1';
+
 const AVATARS = ['🦊', '🦁', '🐼', '🐸', '🦄', '🐙', '🦖', '🐶', '🐱', '🦉', '🐢', '🦝', '🐵', '🐯', '🐰', '🐨'];
 
 /* 15 niveaux de calcul mental */
@@ -133,22 +135,24 @@ const THEMES = [
   { id: 'nuit',      nom: 'Nuit étoilée', emoji: '🌙', prix: 90, apercu: 'linear-gradient(135deg,#0f172a,#334155)' }
 ];
 /* Boutique : accessoires d'avatar */
+// type : 'tete' (chapeau/lunettes posés sur l'avatar), 'visage' (déguisement
+// qui remplace la tête), 'badge' (épinglé en bas à droite)
 const ACCESSOIRES = [
-  { id: 'couronne',  emoji: '👑', prix: 160 },
-  { id: 'chapeau',   emoji: '🎩', prix: 90 },
-  { id: 'sorcier',   emoji: '🧙', prix: 180 },
-  { id: 'casquette', emoji: '🧢', prix: 60 },
-  { id: 'noeud',     emoji: '🎀', prix: 60 },
-  { id: 'lunettes',  emoji: '🕶️', prix: 80 },
-  { id: 'heros',     emoji: '🦸', prix: 130 },
+  { id: 'couronne',  emoji: '👑', nom: 'Couronne',            prix: 160, type: 'tete' },
+  { id: 'chapeau',   emoji: '🎩', nom: 'Haut-de-forme',       prix: 90,  type: 'tete' },
+  { id: 'sorcier',   emoji: '🧙', nom: 'Déguisement sorcier', prix: 180, type: 'visage' },
+  { id: 'casquette', emoji: '🧢', nom: 'Casquette',           prix: 60,  type: 'tete' },
+  { id: 'noeud',     emoji: '🎀', nom: 'Nœud papillon',       prix: 60,  type: 'badge' },
+  { id: 'lunettes',  emoji: '🕶️', nom: 'Lunettes cool',       prix: 80,  type: 'tete' },
+  { id: 'heros',     emoji: '🦸', nom: 'Déguisement héros',   prix: 130, type: 'visage' },
   /* v3.1 */
-  { id: 'diplome',   emoji: '🎓', prix: 110 },
-  { id: 'cowboy',    emoji: '🤠', prix: 100 },
-  { id: 'fleur',     emoji: '👒', prix: 85 },
-  { id: 'masque',    emoji: '🦹', prix: 150 },
-  { id: 'casque',    emoji: '⛑️', prix: 95 },
-  { id: 'rosette',   emoji: '🏵️', prix: 75 },
-  { id: 'ninja',     emoji: '🥷', prix: 170 }
+  { id: 'diplome',   emoji: '🎓', nom: 'Chapeau de diplômé',  prix: 110, type: 'tete' },
+  { id: 'cowboy',    emoji: '🤠', nom: 'Déguisement cowboy',  prix: 100, type: 'visage' },
+  { id: 'fleur',     emoji: '👒', nom: 'Chapeau fleuri',       prix: 85,  type: 'tete' },
+  { id: 'masque',    emoji: '🦹', nom: 'Déguisement méchant', prix: 150, type: 'visage' },
+  { id: 'casque',    emoji: '⛑️', nom: 'Casque de protection', prix: 95,  type: 'tete' },
+  { id: 'rosette',   emoji: '🏵️', nom: 'Rosette',             prix: 75,  type: 'badge' },
+  { id: 'ninja',     emoji: '🥷', nom: 'Déguisement ninja',   prix: 170, type: 'visage' }
 ];
 
 /* Coloriages magiques (grilles ; . = case vide) */

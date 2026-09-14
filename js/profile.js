@@ -225,6 +225,14 @@ function accessoireEmoji(id) {
   const a = ACCESSOIRES.find(x => x.id === id);
   return a ? a.emoji : '';
 }
+function accessoireType(id) {
+  const a = ACCESSOIRES.find(x => x.id === id);
+  return a ? (a.type || 'tete') : '';
+}
+function accessoireNom(id) {
+  const a = ACCESSOIRES.find(x => x.id === id);
+  return a ? a.nom : '';
+}
 function appliquerTheme() { document.body.dataset.theme = joueur ? joueur.theme : 'classique'; }
 
 /* ---------- Records ---------- */

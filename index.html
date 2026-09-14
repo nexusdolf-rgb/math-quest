@@ -39,8 +39,10 @@
   <div id="toast" class="toast" role="status"></div>
   <div id="superposition" class="superposition" hidden></div>
 
-  <!-- Multijoueur en ligne pair-à-pair (WebRTC) : facultatif, l'app marche sans -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Multijoueur en ligne pair-à-pair (WebRTC) : facultatif et chargé en
+       différé pour ne JAMAIS bloquer le jeu, même sans internet (le mode
+       hors-ligne affiche alors simplement un message clair). -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" async></script>
 
   <!-- Scripts de l'application (chargés dans l'ordre, sans serveur requis) -->
   <script src="js/util.js"></script>

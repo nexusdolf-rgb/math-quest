@@ -1,5 +1,5 @@
 /* Math Quest — Service Worker (hors-ligne) */
-const VERSION = 'math-quest-v7-';
+const VERSION = 'math-quest-v8-';
 const FICHIERS = [
   './',
   './index.html',

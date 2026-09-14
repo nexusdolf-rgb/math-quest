@@ -45,6 +45,7 @@ function ecranMultijoueur() {
     <div class="carte">
       <div class="section-titre" style="margin-top:0">🌐 Avec un ami à distance</div>
       <p class="petit-texte center">Chacun sur son téléphone, par internet. Gratuit, sans compte :</p>
+      ${!Multi.enLigne() ? `<div class="bandeau-horsligne">📵 Hors-ligne ! Ces 4 modes ont besoin d'internet — tout le reste du jeu fonctionne sans réseau.</div>` : ''}
       <div class="mp-boutons mp-grille mp-grille-4">
         <button class="btn btn-grand btn-principal" data-act="mp-creer" data-mode="duel">⚔️<span>Duel</span></button>
         <button class="btn btn-grand btn-vert" data-act="mp-creer" data-mode="course">🏁<span>Course</span></button>
@@ -276,7 +277,7 @@ function rendreRapidoL() {
       <div class="rapido-chrono" id="rapido-chrono">${Math.ceil(c.restant / 1000)}</div>
     </div>
     <div class="barre-temps rapido-barre"><div id="rapido-barre" style="width:100%"></div></div>
-    <div class="rapido-score">✅ ${j.justes} bonne réponse${j.justes > 1 ? "s" : ""}</div>
+    <div class="rapido-score">✅ ${j.justes} ${j.justes === 1 ? 'bonne réponse' : 'bonnes réponses'}</div>
     <div class="zone-question mt" style="min-height:120px;margin-bottom:12px">
       <div class="q-consigne">${q.consigne || 'Combien ça fait ?'}</div>
       ${q.visuel}
@@ -370,14 +371,22 @@ function podiumRapido(joueurs, enLigne = false) {
    SALON EN LIGNE
    ============================================================ */
 function ecranCreerSalon(mode) {
-  if (!Multi.disponible()) { dire('🌐 Le mode en ligne nécessite une connexion internet !'); return; }
+  if (!Multi.disponible()) {
+    dire(Multi.enLigne() ? '⏳ Le mode en ligne finit de charger… réessaie dans 2 secondes.'
+                         : '📵 Pas de connexion internet : le mode à distance est indisponible.');
+    return;
+  }
   mpModeLigne = mode;
   Multi.onLancement = initialiserInviteJeu;
   Multi.creerSalon(mode, rendreSalonLigne);
   rendreSalonLigne();
 }
 function ecranRejoindreSalon(code) {
-  if (!Multi.disponible()) { dire('🌐 Le mode en ligne nécessite une connexion internet !'); return; }
+  if (!Multi.disponible()) {
+    dire(Multi.enLigne() ? '⏳ Le mode en ligne finit de charger… réessaie dans 2 secondes.'
+                         : '📵 Pas de connexion internet : le mode à distance est indisponible.');
+    return;
+  }
   Multi.onLancement = initialiserInviteJeu;
   Multi.rejoindreSalon(code, rendreSalonLigne);
   rendreSalonLigne();
@@ -1195,3 +1204,10 @@ function afficherEmote(avatar, e) {
   document.body.appendChild(div);
   setTimeout(() => div.remove(), 1800);
 }
+
+/* Le hub multijoueur réagit en direct quand on coupe/retrouve le réseau */
+(function () {
+  function hubAffiche() { return !!document.querySelector('#code-salon'); }
+  window.addEventListener('offline', () => { if (hubAffiche()) { try { ecranMultijoueur(); } catch {} } });
+  window.addEventListener('online', () => { if (hubAffiche()) { try { ecranMultijoueur(); } catch {} } });
+})();

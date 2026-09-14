@@ -950,3 +950,45 @@ body {
   .grille-jeux { gap: 16px; }
   .carte-jeu { min-height: 158px; }
 }
+
+/* ============================================================
+   v3.2.1 — Correctifs tactiles : pas d'effet "survol" qui reste
+   collé après un tap au doigt (hover rémanent sur mobile).
+   Sur écran tactile, seul l'appui (:active) donne le retour.
+   ============================================================ */
+@media (hover: none) {
+  .btn:hover,
+  .carte-jeu:hover,
+  .reponse:hover:not(:disabled),
+  .profil-puce:hover,
+  .piece-puce:hover,
+  .avatar-btn:hover,
+  .nav-bas button:hover {
+    transform: none !important;
+    filter: none !important;
+    box-shadow: var(--ombre-petite);
+  }
+  .carte-jeu:hover { box-shadow: var(--ombre-petite); }
+}
+/* Sur ordinateur, les effets de survol ne s'appliquent qu'avec une souris */
+@media (hover: hover) and (pointer: fine) {
+  .reponse:hover:not(:disabled) { transform: translateY(-2px); }
+}
+
+/* Accessoire de type badge (rosette/nœud) : épinglé en bas à droite */
+.avatar-wrap .accessoire.acc-badge { top: auto; right: -8px; bottom: -6px; font-size: .9em; }
+/* Les déguisements remplacent la tête : même cadrage qu'un avatar normal */
+.avatar-wrap.deguise .av { line-height: 1; }
+
+/* Le bouton « Rejoindre » ne doit pas prendre toute la largeur (il écraserait
+   le champ du code de salon) */
+.mp-rejoindre .btn-grand { width: auto; flex: 0 0 auto; padding-left: 22px; padding-right: 22px; }
+.mp-rejoindre { align-items: stretch; }
+.mp-rejoindre .btn-grand { min-height: 56px; }
+
+/* Bandeau d'avertissement hors-ligne (hub multijoueur) */
+.bandeau-horsligne {
+  margin: 10px 0 4px; padding: 12px 14px; border-radius: 14px;
+  background: #fef3c7; border: 2px dashed #f59e0b; color: #92400e;
+  font-weight: 600; font-size: .95rem; text-align: center;
+}

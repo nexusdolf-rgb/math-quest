@@ -19,6 +19,7 @@ function etoilesNoeud(n) {
   return 0;
 }
 const noeudFait = n => etoilesNoeud(n) > 0;
+let aventurePositionnee = false;
 
 /* Un nœud de jeu est ouvert si le nœud de jeu précédent est fait.
    Raccourci d'âge : le 1er nœud des mondes « ados » (ageMin > 0) s'ouvre
@@ -200,13 +201,18 @@ function ecranAventure() {
         <button class="btn btn-grand btn-principal mt" data-act="nav" data-ecran="diplome">🎓 Voir mon diplôme de Grand Explorateur</button>` : ''}
     </div>${navHTML('aventure')}`);
 
-  // Un ado/adulte qui déballe atterrit directement sur son monde de départ
-  const tousPlat = tousNoeudsAventure();
-  const aucunProgres = tousPlat.filter(n => n.type !== 'coffre').every(n => !noeudFait(n));
-  if (aucunProgres) {
-    let cible = 'foret';
-    AVENTURE.forEach(m => { if (m.ageMin > 0 && joueur.age >= m.ageMin) cible = m.id; });
-    const el = document.getElementById('monde-' + cible);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Un ado/adulte qui découvre la carte atterrit directement sur son monde de
+  // départ, mais UNE SEULE FOIS (sinon le tap sur l'onglet Carte fait un saut
+  // de scroll qui semble être un bug).
+  if (!aventurePositionnee) {
+    aventurePositionnee = true;
+    const tousPlat = tousNoeudsAventure();
+    const aucunProgres = tousPlat.filter(n => n.type !== 'coffre').every(n => !noeudFait(n));
+    if (aucunProgres) {
+      let cible = 'foret';
+      AVENTURE.forEach(m => { if (m.ageMin > 0 && joueur.age >= m.ageMin) cible = m.id; });
+      const el = document.getElementById('monde-' + cible);
+      if (el && el.scrollIntoView) apres(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    }
   }
 }

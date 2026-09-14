@@ -23,7 +23,7 @@ function entetePage(titre, retour = 'jeux') {
 function puceProfil() {
   const { titre } = titreActuel();
   return `<button class="profil-puce" data-act="nav" data-ecran="profil">
-    ${avatarHTML(joueur.avatar, accessoireEmoji(joueur.accessoire), 'avatar-mini')}
+    ${avatarHTML(joueur.avatar, accessoireEmoji(joueur.accessoire), 'avatar-mini', accessoireType(joueur.accessoire))}
     <span>
       <div class="nom">${echapper(joueur.pseudo)}</div>
       <div class="titre-joueur">${titre}</div>
@@ -298,9 +298,9 @@ function ecranBoutique() {
             const equipe = joueur.accessoire === a.id;
             return `<div class="article-boutique ${equipe ? 'equipe' : ''}">
               <div class="ab-apercu" style="background:linear-gradient(135deg,#ede9fe,#fce7f3)">
-                ${avatarHTML('🦊', a.emoji, 'avatar-xl')}
+                ${avatarHTML('🦊', a.emoji, 'avatar-xl', a.type || 'tete')}
               </div>
-              <div class="ab-nom">${a.emoji} Accessoire</div>
+              <div class="ab-nom">${a.nom}</div>
               ${equipe ? '<button class="btn btn-vert ab-btn" disabled>✓ Porté</button>'
                 : achete ? `<button class="btn btn-bleu ab-btn" data-act="acheter-accessoire" data-id="${a.id}">Porter</button>`
                 : `<button class="btn btn-orange ab-btn" data-act="acheter-accessoire" data-id="${a.id}">🪙 ${a.prix}</button>`}
@@ -326,7 +326,7 @@ function ecranClassement() {
           const classe = j === podium[0] ? 'p1' : j === podium[1] ? 'p2' : 'p3';
           const medaille = j === podium[0] ? '🥇' : j === podium[1] ? '🥈' : '🥉';
           return `<div class="place ${classe}">
-            <div class="p-avatar">${j.accessoire ? avatarHTML(j.avatar, accessoireEmoji(j.accessoire)) : j.avatar}</div>
+            <div class="p-avatar">${j.accessoire ? avatarHTML(j.avatar, accessoireEmoji(j.accessoire), '', accessoireType(j.accessoire)) : j.avatar}</div>
             <div style="font-weight:700;font-size:.8rem">${echapper(j.nom)}</div>
             <div class="p-socle">${medaille}<br/>${j.xp} XP</div>
           </div>`;
@@ -335,7 +335,7 @@ function ecranClassement() {
       ${ligne.map((j, i) => `
         <div class="ligne-classement ${j.moi ? 'moi' : ''}">
           <span class="lc-rang">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span>
-          <span class="lc-avatar">${j.accessoire ? avatarHTML(j.avatar, accessoireEmoji(j.accessoire), 'avatar-mini') : j.avatar}</span>
+          <span class="lc-avatar">${j.accessoire ? avatarHTML(j.avatar, accessoireEmoji(j.accessoire), 'avatar-mini', accessoireType(j.accessoire)) : j.avatar}</span>
           <span class="lc-nom">${echapper(j.nom)}</span>
           <span class="lc-xp">${j.xp} XP</span>
         </div>`).join('')}
@@ -357,7 +357,7 @@ function ecranProfil() {
   afficher(entetePage('🧒 Mon profil', 'accueil') + `
     <div class="carte">
       <div class="profil-tete">
-        ${avatarHTML(joueur.avatar, accessoireEmoji(joueur.accessoire), 'avatar-xl')}
+        ${avatarHTML(joueur.avatar, accessoireEmoji(joueur.accessoire), 'avatar-xl', accessoireType(joueur.accessoire))}
         <div class="pt-nom mt">${echapper(joueur.pseudo)}</div>
         <div class="pt-age">${joueur.age} ans • ${titre}</div>
       </div>
@@ -429,8 +429,8 @@ function ecranReglages() {
         <button class="interrupteur ${AudioMX.prefs.musique ? 'on' : ''}" data-act="reglage-musique" aria-label="Musique"></button>
       </div>
       <div class="interrupteur-ligne">
-        <span>🔇 Tout couper d'un coup</span>
-        <button class="interrupteur ${AudioMX.toutActif() ? 'on' : ''}" data-act="reglage-tout" aria-label="Tout couper"></button>
+        <span>🔊 Son général</span>
+        <button class="interrupteur ${AudioMX.toutActif() ? 'on' : ''}" data-act="reglage-tout" aria-label="Son général (tout activer ou couper)"></button>
       </div>
       <div class="interrupteur-ligne">
         <span>🌈 Thème : ${THEMES.find(t => t.id === joueur.theme)?.emoji || '🌈'} ${THEMES.find(t => t.id === joueur.theme)?.nom || 'Classique'}</span>
@@ -439,7 +439,7 @@ function ecranReglages() {
       <div class="plusieurs-boutons mt">
         <button class="btn btn-grand btn-rouge" data-act="profil-reset">🔄 Changer de joueur (tout recommencer)</button>
       </div>
-      <p class="petit-texte mt">Math Quest v3.0 — jeu éducatif hors-ligne, sans publicité et sans collecte de données.</p>
+      <p class="petit-texte mt">Math Quest ${VERSION_JEU} — jeu éducatif jouable hors-ligne (sauf le mode « avec un ami à distance »), sans publicité et sans collecte de données.</p>
     </div>${navHTML('')}`);
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "Math Quest — Le jeu de maths pour les enfants",
   "short_name": "Math Quest",
-  "description": "Jeu éducatif de mathématiques de 5 ans à l'âge adulte : carte Aventure avec 5 mondes et 3 boss, 25 jeux, calcul mental, tables, divisions, équations… 100% hors-ligne !",
+  "description": "Jeu éducatif de mathématiques de 5 ans à l'âge adulte : carte Aventure avec 5 mondes et 3 boss, 25 jeux, calcul mental, tables, divisions, équations… Tout fonctionne hors-ligne, sauf le mode « avec un ami à distance ».",
   "lang": "fr",
   "start_url": "./index.html",
   "scope": "./",
