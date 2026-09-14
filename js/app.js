@@ -60,6 +60,7 @@ function refaireDernier() {
   if (der.type === 'boss-aventure') return lancerBossAventure(der.boss, JEU.aventureId);
   if (der.type === 'fete') return relancerFete();
   if (der.type === 'course-locale') return lancerCourseLocale();
+  if (der.type === 'rapido-locale') return lancerRapidoLocale();
   if (der.type === 'mode') {
     if (ECRANS_JEUX_SPECIAUX[der.mode]) return ECRANS_JEUX_SPECIAUX[der.mode]();
     return lancerQuizMode(der.mode);
@@ -182,6 +183,11 @@ document.addEventListener('click', e => {
     case 'course-pret': questionCourseL(); break;
     case 'course-rep-l': reponseCourseL(parseInt(d.i, 10)); break;
     case 'course-suivant-l': suivantCourseL(); break;
+    case 'mp-rapido-local': lancerRapidoLocale(); break;
+    case 'rapido-pret': questionRapidoL(); break;
+    case 'rapido-rep-l': reponseRapidoL(parseInt(d.i, 10)); break;
+    case 'rapido-ligne-rep': repondreRapidoLigne(parseInt(d.i, 10)); break;
+    case 'coop-ligne-rep': repondreCoopLigne(parseInt(d.i, 10)); break;
     case 'mp-creer': ecranCreerSalon(d.mode); break;
     case 'mp-rejoindre': {
       const inp = $('#code-salon');

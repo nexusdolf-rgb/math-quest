@@ -164,12 +164,12 @@ function carteJeuHTML(m) {
   const record = m.id === 'fusee' ? joueur.records.fusee
     : m.id === 'taupe' ? joueur.records.taupe
     : m.id === 'pingpong' ? joueur.records.pingpong : null;
-  return `<button class="carte-jeu" style="background:${m.couleur}" data-act="ouvrir-mode" data-mode="${m.id}">
+  return `<button class="carte-jeu" data-act="ouvrir-mode" data-mode="${m.id}">
     ${m.nouveau ? '<span class="nouveau-badge">NOUVEAU</span>' : ''}
     ${m.id === 'calcul' ? `<span class="cj-badge">⭐ ${totalEtoiles()}/${NIVEAUX.length * 3}</span>` : ''}
     ${record ? `<span class="cj-badge">🏆 ${record}</span>` : ''}
-    <span class="cj-emoji">${m.emoji}</span>
-    <span><span class="cj-nom">${m.nom}</span><div class="cj-sous">${m.sous}</div></span>
+    <span class="cj-icone" style="background:${m.couleur}">${m.emoji}</span>
+    <span class="cj-textes"><span class="cj-nom">${m.nom}</span><span class="cj-sous">${m.sous}</span></span>
   </button>`;
 }
 

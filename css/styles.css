@@ -773,3 +773,180 @@ h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
   width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center;
   justify-content: center; font-size: 1.6rem; box-shadow: inset 0 -3px 6px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.15);
 }
+
+/* ============================================================
+   v3.2 — REFONTE MODERNE « premium » + animations + Rapido/Coop
+   ============================================================ */
+
+/* Ombres plus douces et couleur d'encre affinée */
+:root {
+  --ombre: 0 18px 40px -22px rgba(76, 57, 140, .30), 0 4px 10px -4px rgba(76, 57, 140, .10);
+  --ombre-petite: 0 8px 20px -12px rgba(76, 57, 140, .30), 0 2px 5px -2px rgba(76, 57, 140, .10);
+  --encre: #2e2755;
+  --encre-douce: #7a739c;
+  --rayon: 24px;
+}
+
+/* Fond par défaut plus doux et plus moderne (les thèmes achetés restent prioritaires) */
+body {
+  background:
+    radial-gradient(900px 480px at 85% -8%, rgba(253, 230, 138, .45), transparent 60%),
+    radial-gradient(800px 520px at -10% 8%, rgba(165, 180, 252, .50), transparent 55%),
+    radial-gradient(1000px 680px at 50% 115%, rgba(249, 168, 212, .40), transparent 60%),
+    linear-gradient(160deg, #f6f4ff 0%, #fdf2f8 48%, #fff7ed 100%);
+}
+
+/* Cartes épurées, bordure fine, ombres douces */
+.carte {
+  border: 1px solid rgba(255, 255, 255, .75);
+  box-shadow: var(--ombre);
+}
+
+/* Boutons : ombres colorées douces, appui souple, léger rebond */
+.btn { border-radius: 16px; box-shadow: 0 8px 16px -10px rgba(76,57,140,.45); transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s, filter .15s; }
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(1px) scale(.98); box-shadow: 0 3px 8px -6px rgba(76,57,140,.5); }
+.btn-principal { box-shadow: 0 12px 24px -10px rgba(236, 72, 153, .65); }
+.btn-vert { box-shadow: 0 12px 24px -10px rgba(34, 197, 94, .6); }
+.btn-bleu { box-shadow: 0 12px 24px -10px rgba(59, 130, 246, .55); }
+.btn-orange { box-shadow: 0 12px 24px -10px rgba(249, 115, 22, .6); }
+.btn-rouge { box-shadow: 0 12px 24px -10px rgba(239, 68, 68, .55); }
+.btn-grand { border-radius: 18px; }
+
+/* ---------- Grille de jeux : tuiles modernes ---------- */
+.carte-jeu {
+  background: #fff;
+  color: var(--encre);
+  border: 1px solid #efecfb;
+  border-radius: 22px;
+  padding: 14px 14px 16px;
+  min-height: 150px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--ombre-petite);
+  animation: carteEntre .45s cubic-bezier(.2,.9,.3,1.25) both;
+  transition: transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .15s;
+}
+.carte-jeu:hover { transform: translateY(-3px); box-shadow: var(--ombre); }
+.carte-jeu:active { transform: scale(.96); }
+.carte-jeu .cj-icone {
+  width: 54px; height: 54px; border-radius: 17px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.75rem; box-shadow: inset 0 -4px 7px rgba(0,0,0,.14), 0 4px 10px -4px rgba(0,0,0,.25);
+}
+.carte-jeu .cj-textes { margin-top: auto; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.carte-jeu .cj-nom { color: var(--encre); font-size: 1rem; }
+.carte-jeu .cj-sous { color: var(--encre-douce); opacity: 1; }
+.carte-jeu { overflow: hidden; }
+.carte-jeu .cj-badge { background: #f1eefe; color: var(--violet-fonce); top: 10px; right: 10px; }
+.carte-jeu .cj-emoji { display: none; }
+/* apparition en cascade */
+.grille-jeux .carte-jeu:nth-child(1){animation-delay:.02s}.grille-jeux .carte-jeu:nth-child(2){animation-delay:.06s}
+.grille-jeux .carte-jeu:nth-child(3){animation-delay:.10s}.grille-jeux .carte-jeu:nth-child(4){animation-delay:.14s}
+.grille-jeux .carte-jeu:nth-child(5){animation-delay:.18s}.grille-jeux .carte-jeu:nth-child(6){animation-delay:.22s}
+.grille-jeux .carte-jeu:nth-child(7){animation-delay:.26s}.grille-jeux .carte-jeu:nth-child(8){animation-delay:.30s}
+.grille-jeux .carte-jeu:nth-child(9){animation-delay:.34s}.grille-jeux .carte-jeu:nth-child(n+10){animation-delay:.36s}
+@keyframes carteEntre { from { opacity: 0; transform: translateY(18px) scale(.95); } to { opacity: 1; transform: none; } }
+.nouveau-badge { background: linear-gradient(135deg, #f43f5e, #f97316); top: 10px; left: 10px; transform: none; animation: pulse 1.6s infinite; }
+
+/* ---------- Réponses : cartes claires, validation moderne avec coches ---------- */
+.reponse {
+  border: 2px solid #ece9fa;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 14px -10px rgba(76,57,140,.4);
+  transition: transform .1s, border-color .12s, background .12s, box-shadow .12s;
+}
+.reponse:hover:not(:disabled) { transform: translateY(-2px); border-color: #c4b5fd; box-shadow: var(--ombre-petite); }
+.reponse:active:not(:disabled) { transform: scale(.97); }
+.reponse.bonne {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-color: #22c55e; color: #14532d;
+  box-shadow: 0 10px 22px -12px rgba(34,197,94,.7);
+}
+.reponse.bonne::after { content: '✓'; position: absolute; top: 6px; right: 12px; color: #16a34a; font-weight: 900; font-size: 1.1rem; animation: pop .3s; }
+.reponse.mauvaise { background: linear-gradient(135deg, #fee2e2, #fecaca); border-color: #ef4444; color: #7f1d1d; }
+.reponse.mauvaise::after { content: '✕'; position: absolute; top: 6px; right: 12px; color: #dc2626; font-weight: 900; font-size: 1.1rem; }
+.reponse.inactif, .reponse:disabled { opacity: .75; }
+
+/* Zone de question : carte très claire */
+.zone-question {
+  background: linear-gradient(180deg, #fdfcff, #f7f5ff);
+  border: 1px solid #efecfb;
+  box-shadow: var(--ombre-petite);
+  border-radius: 24px;
+}
+
+/* Barres de progression avec reflet animé */
+.barre-progres { background: #e8e4f8; box-shadow: inset 0 1px 3px rgba(76,57,140,.12); }
+.barre-progres > div { position: relative; overflow: hidden; }
+.barre-progres > div::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  animation: reflet 2.2s linear infinite;
+}
+@keyframes reflet { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* Pastilles de score/pièces plus nettes */
+.qh-score, .piece-puce, .profil-puce { border: 1px solid rgba(255,255,255,.8); }
+.profil-puce:hover, .piece-puce:hover { transform: translateY(-1px); }
+
+/* ---------- Navigation flottante « verre dépoli » ---------- */
+.nav-bas {
+  bottom: 10px;
+  width: calc(100% - 20px);
+  border-radius: 22px;
+  background: rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.8);
+  box-shadow: 0 16px 34px -16px rgba(76,57,140,.45);
+}
+.nav-bas button { border-radius: 15px; transition: transform .15s cubic-bezier(.34,1.56,.64,1); }
+.nav-bas button.actif { background: linear-gradient(135deg, #ede9fe, #fce7f3); color: var(--violet-fonce); }
+.nav-bas button.actif .nb-icone { animation: iconeRebond .45s cubic-bezier(.34,1.56,.64,1); }
+@keyframes iconeRebond { 0% { transform: scale(.6); } 60% { transform: scale(1.25) translateY(-2px); } 100% { transform: scale(1); } }
+.app { padding-bottom: 118px; }
+
+/* Modales plus douces */
+.modale { border-radius: 28px; box-shadow: 0 30px 70px -30px rgba(45,35,80,.6); }
+
+/* Titres de section : petit trait moderne */
+.section-titre::before { content: ''; width: 6px; height: 22px; border-radius: 4px; background: linear-gradient(180deg, #8b5cf6, #ec4899); display: inline-block; }
+
+/* ---------- Hub multijoueur : grilles de modes ---------- */
+.mp-grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mp-grille-4 { grid-template-columns: repeat(2, 1fr); }
+.mp-grille .btn { flex-direction: column; font-size: 1.9rem; padding: 16px 8px; line-height: 1.05; border-radius: 18px; }
+.mp-grille .btn span { font-size: .8rem; font-weight: 700; margin-top: 3px; }
+
+/* ---------- Rapido ---------- */
+.rapido-chrono {
+  margin-left: auto; font-weight: 900; font-size: 1.35rem; color: #ea580c;
+  background: #fff7ed; border: 3px solid #fdba74; border-radius: 999px; min-width: 56px;
+  text-align: center; padding: 5px 12px; box-shadow: var(--ombre-petite);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.rapido-barre > div { background: linear-gradient(90deg, #facc15, #f97316); }
+.barre-temps.danger { box-shadow: 0 0 0 3px rgba(239,68,68,.15); border-radius: 99px; }
+.barre-temps.danger > div { background: linear-gradient(90deg, #f87171, #ef4444); animation: clignote .5s infinite; }
+@keyframes clignote { 0%,100% { opacity: 1; } 50% { opacity: .65; } }
+.rapido-score { text-align: center; font-weight: 800; color: #b45309; margin: 6px 0 2px; }
+.rapido-classement { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 12px; }
+
+/* ---------- Coop ---------- */
+.coop-caisse {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #34d399;
+  color: #065f46; font-weight: 800; border-radius: 16px; padding: 11px 16px; margin-bottom: 8px;
+}
+.coop-caisse b { font-size: 1.25rem; }
+.coop-barre { height: 15px; }
+
+/* Entrées d'écran plus légères */
+#root > * { animation: ecranEntre .28s cubic-bezier(.2,.9,.3,1.1); }
+
+/* Écrans de grande largeur : grille de jeux plus aérée */
+@media (min-width: 720px) {
+  .grille-jeux { gap: 16px; }
+  .carte-jeu { min-height: 158px; }
+}

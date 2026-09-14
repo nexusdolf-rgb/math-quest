@@ -197,7 +197,9 @@ Multi._recuInvite = function (m) {
     this.salon.phase = 'erreur';
     this._emettre();
   } else if (m.t === 'question' || m.t === 'pointage' || m.t === 'fin' ||
-             m.t === 'attente' || m.t === 'emote' || m.t === 'retour-salon' || m.t === 'de') {
+             m.t === 'attente' || m.t === 'emote' || m.t === 'retour-salon' || m.t === 'de' ||
+             m.t === 'rapido-start' || m.t === 'rapido-points' || m.t === 'rapido-fin' ||
+             m.t === 'coop-start' || m.t === 'coop-pointage' || m.t === 'coop-fin') {
     if (m.t === 'emote' && !this.jeu) {
       const j = this.salon && this.salon.joueurs.find(x => x.id === m.id);
       return afficherEmote(j ? j.avatar : '🙂', m.e);
